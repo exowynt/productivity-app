@@ -1,21 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useStorage } from './hooks/useStorage';
 
 function App() {
-  const [message, setMessage] = useState('Loading...');
+  const { data, loading, update } = useStorage();
 
-  useEffect(() => {
-    // Check if we're running in Electron
-    if (window.electronAPI) {
-      setMessage('Electron + React is working!');
-    } else {
-      setMessage('Running in browser (no Electron API)');
-    }
-  }, []);
+  if (loading) {
+    return <div style={{ padding: '2rem' }}>Loading...</div>;
+  }
+
+  // Get counter from settings or default to 0
+  const counter = (data.settings.counter as number) || 0;
+
+  const incrementCounter = () => {
+    const newCounter = counter + 1;
+    update({ settings: { ...data.settings, counter: newCounter } });
+  };
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>Focus Dashboard</h1>
-      <p>{message}</p>
+      <p>Electron + React data layer is working!</p>
+      <div style={{ marginTop: '1rem' }}>
+        <p>Counter: {counter}</p>
+        <button onClick={incrementCounter}>Increment</button>
+      </div>
+      <p style={{ marginTop: '1rem', color: '#666' }}>
+        Close and reopen the app — the counter persists.
+      </p>
     </div>
   );
 }

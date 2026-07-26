@@ -1,5 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
+import { loadData, saveData } from './storage';
+import { AppData } from '../shared/types';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -37,7 +39,23 @@ function createWindow(): void {
 }
 
 // Start the app when Electron is ready
+app.whenReady().then(() => {
+  // IPC handlers
+  ipcMain.handle('load-data', () => loadData());
+  ipcMain.handle('save-data', (_event, data: AppData) => saveData(data));
+  
+  createWindow();
+});
 app.whenReady().then(createWindow);
+
+// IPC Handlers for data persistence
+ipcMain.handle('load-data', () => {
+  return loadData();
+});
+
+ipcMain.handle('save-data', (_event, data: AppData) => {
+  saveData(data);
+});
 
 // Quit when all windows are closed (Windows/Linux)
 app.on('window-all-closed', () => {
