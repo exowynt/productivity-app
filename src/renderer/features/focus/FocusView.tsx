@@ -28,6 +28,7 @@ export const FocusView: React.FC = () => {
   const [customMinutesInput, setCustomMinutesInput] = useState<string>('30');
   const [newDomainInput, setNewDomainInput] = useState<string>('');
   const [isShieldActive, setIsShieldActive] = useState<boolean>(false);
+  const [blockerError, setBlockerError] = useState<string | null>(null);
 
   const blockedSites = data.blockedSites || [];
 
@@ -59,6 +60,11 @@ export const FocusView: React.FC = () => {
       if (window.electronAPI) {
         window.electronAPI.startWebsiteBlocker(blockedSites).then((res) => {
           setIsShieldActive(res?.active || false);
+          if (res?.error) {
+            setBlockerError(res.error);
+          } else {
+            setBlockerError(null);
+          }
         });
       }
       document.title = `(${formatMMSS(timeLeft)}) Focus Mode — Solitude`;
@@ -177,7 +183,7 @@ export const FocusView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {isShieldActive && (
               <span className="badge badge-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                <IconShield size={13} /> Shield Active ({blockedSites.length})
+                <IconShield size={13} /> System Shield Active ({blockedSites.length})
               </span>
             )}
             <div className={`status-badge status-${status}`}>
@@ -190,7 +196,6 @@ export const FocusView: React.FC = () => {
         {/* Circular Progress Ring */}
         <div className="timer-ring-container">
           <svg className="timer-ring-svg" viewBox="0 0 280 280">
-            {/* Background track */}
             <circle
               className="ring-bg"
               cx="140"
@@ -198,7 +203,6 @@ export const FocusView: React.FC = () => {
               r="120"
               strokeWidth="12"
             />
-            {/* Active progress stroke */}
             <circle
               className="ring-progress"
               cx="140"
@@ -314,21 +318,37 @@ export const FocusView: React.FC = () => {
           <div>
             <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <IconShield size={18} style={{ color: 'var(--accent-primary)' }} />
-              <span>Website Blocker Shield</span>
+              <span>System-Wide Website Blocker Shield</span>
             </h3>
             <p className="section-subtitle">
-              Distraction sites blocked automatically while your Focus timer is running.
+              Blocks listed domain traffic across Chrome, Edge, Firefox, Brave, and system browsers during Focus sessions.
             </p>
           </div>
           <span className="badge badge-primary">{blockedSites.length} Blocked Domains</span>
         </div>
+
+        {blockerError && (
+          <div
+            style={{
+              padding: '0.75rem 1rem',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: '#FCA5A5',
+              fontSize: '0.88rem',
+              marginBottom: '1rem',
+            }}
+          >
+            ⚠️ {blockerError}
+          </div>
+        )}
 
         <form onSubmit={handleAddDomain} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
           <input
             type="text"
             className="category-input"
             style={{ flex: 1 }}
-            placeholder="Add website to block (e.g. youtube.com, reddit.com, twitter.com)"
+            placeholder="Add website domain to block (e.g. youtube.com, reddit.com, twitter.com)"
             value={newDomainInput}
             onChange={(e) => setNewDomainInput(e.target.value)}
           />

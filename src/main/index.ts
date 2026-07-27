@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { loadData, saveData } from './storage';
 import { AppData } from '../shared/types';
+import { enableSystemBlocker, disableSystemBlocker } from './hostsBlocker';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -71,6 +72,7 @@ function createTray(): void {
       {
         label: 'Quit Solitude',
         click: () => {
+          disableSystemBlocker();
           app.quit();
         },
       },
@@ -97,26 +99,28 @@ function setupWebsiteBlocker(): void {
       const shouldBlock = activeBlocklist.some((domain) => url.includes(domain.toLowerCase()));
 
       if (shouldBlock) {
-        console.log(`[Website Shield] Blocked request to: ${details.url}`);
+        console.log(`[Website Shield] Blocked internal request: ${details.url}`);
         callback({ cancel: true });
       } else {
         callback({ cancel: false });
       }
     });
   } catch (err) {
-    console.warn('WebRequest blocker registration error:', err);
+    console.warn('WebRequest blocker error:', err);
   }
 
   ipcMain.handle('start-website-blocker', (_event, blocklist: string[]) => {
     activeBlocklist = blocklist || [];
     isBlockerActive = true;
-    return { success: true, active: true, count: activeBlocklist.length };
+    const res = enableSystemBlocker(activeBlocklist);
+    return { success: res.success, active: true, count: activeBlocklist.length, error: res.error };
   });
 
   ipcMain.handle('stop-website-blocker', () => {
     isBlockerActive = false;
     activeBlocklist = [];
-    return { success: true, active: false, count: 0 };
+    const res = disableSystemBlocker();
+    return { success: res.success, active: false, count: 0, error: res.error };
   });
 
   ipcMain.handle('get-website-blocker-status', () => {
@@ -138,7 +142,12 @@ app.whenReady().then(() => {
   createTray();
 });
 
+app.on('will-quit', () => {
+  disableSystemBlocker();
+});
+
 app.on('window-all-closed', () => {
+  disableSystemBlocker();
   if (process.platform !== 'darwin') {
     app.quit();
   }
