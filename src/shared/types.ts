@@ -15,6 +15,7 @@ export interface Task {
   text: string;
   completed: boolean;
   order: number;
+  createdAt?: string;
 }
 
 export interface Note {
@@ -22,6 +23,7 @@ export interface Note {
   title: string;
   content: string;
   pinned: boolean;
+  color?: 'indigo' | 'emerald' | 'amber' | 'rose' | 'violet';
   createdAt: string;
 }
 
@@ -29,5 +31,5 @@ export interface AppData {
   focusSessions: FocusSession[];
   tasks: Task[];
   notes: Note[];
-  settings: Record<string, unknown>; // e.g. dailyGoalMinutes, counter, etc.
+  settings: Record<string, unknown>;
 }

@@ -9,7 +9,7 @@ const EMPTY_DATA: AppData = {
   tasks: [],
   notes: [],
   settings: {
-    dailyGoalMinutes: 120, // default 2 hours daily study goal
+    dailyGoalMinutes: 120,
   },
 };
 
@@ -17,7 +17,7 @@ export function useStorage() {
   const [data, setData] = useState<AppData>(EMPTY_DATA);
   const [loading, setLoading] = useState(true);
 
-  // Load data on mount (Electron IPC primary, LocalStorage fallback)
+  // Load data on mount
   useEffect(() => {
     async function fetchData() {
       try {
@@ -33,7 +33,7 @@ export function useStorage() {
         console.warn('Electron IPC unavailable, falling back to LocalStorage:', err);
       }
 
-      // Browser LocalStorage fallback
+      // LocalStorage fallback
       try {
         const localRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (localRaw) {
@@ -48,7 +48,7 @@ export function useStorage() {
     fetchData();
   }, []);
 
-  // Save function updating state and storage
+  // Save data
   const save = useCallback(async (newData: AppData) => {
     try {
       if (window.electronAPI) {
@@ -62,7 +62,7 @@ export function useStorage() {
     }
   }, []);
 
-  // Helper to add a completed focus session
+  // --- Focus Session Actions ---
   const addFocusSession = useCallback(
     async (session: FocusSession) => {
       const updatedSessions = [session, ...(data.focusSessions || [])];
@@ -71,11 +71,116 @@ export function useStorage() {
     [data, save]
   );
 
-  // Helper to delete a focus session
   const deleteFocusSession = useCallback(
     async (id: string) => {
       const updatedSessions = (data.focusSessions || []).filter((s) => s.id !== id);
       await save({ ...data, focusSessions: updatedSessions });
+    },
+    [data, save]
+  );
+
+  // --- Task Actions ---
+  const addTask = useCallback(
+    async (text: string) => {
+      if (!text.trim()) return;
+      const newTask: Task = {
+        id: Date.now().toString(),
+        text: text.trim(),
+        completed: false,
+        order: (data.tasks || []).length,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedTasks = [...(data.tasks || []), newTask];
+      await save({ ...data, tasks: updatedTasks });
+    },
+    [data, save]
+  );
+
+  const toggleTask = useCallback(
+    async (id: string) => {
+      const updatedTasks = (data.tasks || []).map((t) =>
+        t.id === id ? { ...t, completed: !t.completed } : t
+      );
+      await save({ ...data, tasks: updatedTasks });
+    },
+    [data, save]
+  );
+
+  const deleteTask = useCallback(
+    async (id: string) => {
+      const updatedTasks = (data.tasks || []).filter((t) => t.id !== id);
+      await save({ ...data, tasks: updatedTasks });
+    },
+    [data, save]
+  );
+
+  const moveTask = useCallback(
+    async (id: string, direction: 'up' | 'down') => {
+      const tasks = [...(data.tasks || [])];
+      const index = tasks.findIndex((t) => t.id === id);
+      if (index < 0) return;
+
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= tasks.length) return;
+
+      // Swap
+      const temp = tasks[index];
+      tasks[index] = tasks[targetIndex];
+      tasks[targetIndex] = temp;
+
+      // Re-index orders
+      const reindexed = tasks.map((t, i) => ({ ...t, order: i }));
+      await save({ ...data, tasks: reindexed });
+    },
+    [data, save]
+  );
+
+  const clearCompletedTasks = useCallback(async () => {
+    const updatedTasks = (data.tasks || []).filter((t) => !t.completed);
+    await save({ ...data, tasks: updatedTasks });
+  }, [data, save]);
+
+  // --- Note Actions ---
+  const addNote = useCallback(
+    async (title: string, content: string, color: 'indigo' | 'emerald' | 'amber' | 'rose' | 'violet' = 'indigo') => {
+      const newNote: Note = {
+        id: Date.now().toString(),
+        title: title.trim() || 'Untitled Note',
+        content: content.trim(),
+        pinned: false,
+        color,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedNotes = [newNote, ...(data.notes || [])];
+      await save({ ...data, notes: updatedNotes });
+    },
+    [data, save]
+  );
+
+  const updateNote = useCallback(
+    async (id: string, updates: Partial<Note>) => {
+      const updatedNotes = (data.notes || []).map((n) =>
+        n.id === id ? { ...n, ...updates } : n
+      );
+      await save({ ...data, notes: updatedNotes });
+    },
+    [data, save]
+  );
+
+  const togglePinNote = useCallback(
+    async (id: string) => {
+      const updatedNotes = (data.notes || []).map((n) =>
+        n.id === id ? { ...n, pinned: !n.pinned } : n
+      );
+      await save({ ...data, notes: updatedNotes });
+    },
+    [data, save]
+  );
+
+  const deleteNote = useCallback(
+    async (id: string) => {
+      const updatedNotes = (data.notes || []).filter((n) => n.id !== id);
+      await save({ ...data, notes: updatedNotes });
     },
     [data, save]
   );
@@ -86,5 +191,14 @@ export function useStorage() {
     save,
     addFocusSession,
     deleteFocusSession,
+    addTask,
+    toggleTask,
+    deleteTask,
+    moveTask,
+    clearCompletedTasks,
+    addNote,
+    updateNote,
+    togglePinNote,
+    deleteNote,
   };
 }
