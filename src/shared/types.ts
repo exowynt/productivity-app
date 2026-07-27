@@ -41,6 +41,5 @@ export interface AppData {
   notes: Note[];
   reflections?: ReflectionEntry[];
   favoriteVerses?: string[];
-  blockedSites?: string[];
   settings: Record<string, unknown>;
 }

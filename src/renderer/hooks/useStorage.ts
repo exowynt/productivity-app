@@ -4,23 +4,12 @@ import { AppData, FocusSession, Task, Note, ReflectionEntry } from '../../shared
 
 const LOCAL_STORAGE_KEY = 'solitude_app_data_v1';
 
-const DEFAULT_BLOCKED_SITES = [
-  'youtube.com',
-  'reddit.com',
-  'twitter.com',
-  'x.com',
-  'facebook.com',
-  'instagram.com',
-  'tiktok.com',
-];
-
 const EMPTY_DATA: AppData = {
   focusSessions: [],
   tasks: [],
   notes: [],
   reflections: [],
   favoriteVerses: [],
-  blockedSites: DEFAULT_BLOCKED_SITES,
   settings: {
     dailyGoalMinutes: 120,
   },
@@ -40,7 +29,6 @@ export function useStorage() {
             const merged: AppData = {
               ...EMPTY_DATA,
               ...(loaded as Partial<AppData>),
-              blockedSites: (loaded as Partial<AppData>).blockedSites || DEFAULT_BLOCKED_SITES,
             };
             setData(merged);
             setLoading(false);
@@ -59,7 +47,6 @@ export function useStorage() {
           setData({
             ...EMPTY_DATA,
             ...parsed,
-            blockedSites: parsed.blockedSites || DEFAULT_BLOCKED_SITES,
           });
         }
       } catch (err) {
@@ -257,29 +244,6 @@ export function useStorage() {
     [data, save]
   );
 
-  // --- Blocked Sites Actions ---
-  const addBlockedSite = useCallback(
-    async (domain: string) => {
-      const cleaned = domain.trim().toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '');
-      if (!cleaned) return;
-      const current = data.blockedSites || DEFAULT_BLOCKED_SITES;
-      if (!current.includes(cleaned)) {
-        const updated = [...current, cleaned];
-        await save({ ...data, blockedSites: updated });
-      }
-    },
-    [data, save]
-  );
-
-  const removeBlockedSite = useCallback(
-    async (domain: string) => {
-      const current = data.blockedSites || DEFAULT_BLOCKED_SITES;
-      const updated = current.filter((site) => site !== domain);
-      await save({ ...data, blockedSites: updated });
-    },
-    [data, save]
-  );
-
   return {
     data,
     loading,
@@ -298,7 +262,5 @@ export function useStorage() {
     saveReflection,
     deleteReflection,
     toggleFavoriteVerse,
-    addBlockedSite,
-    removeBlockedSite,
   };
 }
