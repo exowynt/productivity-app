@@ -58,15 +58,18 @@ export function useStorage() {
     fetchData();
   }, []);
 
-  // Save data
-  const save = useCallback(async (newData: AppData) => {
+  // Save helper using functional state update to prevent stale closures
+  const save = useCallback(async (updater: (prev: AppData) => AppData) => {
     try {
-      if (window.electronAPI) {
-        await window.electronAPI.saveData(newData);
-      } else {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newData));
-      }
-      setData(newData);
+      setData((prevData) => {
+        const nextData = updater(prevData);
+        if (window.electronAPI) {
+          window.electronAPI.saveData(nextData);
+        } else {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(nextData));
+        }
+        return nextData;
+      });
     } catch (err) {
       console.error('Failed to save data:', err);
     }
@@ -75,179 +78,196 @@ export function useStorage() {
   // --- Focus Session Actions ---
   const addFocusSession = useCallback(
     async (session: FocusSession) => {
-      const updatedSessions = [session, ...(data.focusSessions || [])];
-      await save({ ...data, focusSessions: updatedSessions });
+      await save((prev) => ({
+        ...prev,
+        focusSessions: [session, ...(prev.focusSessions || [])],
+      }));
     },
-    [data, save]
+    [save]
   );
 
   const deleteFocusSession = useCallback(
     async (id: string) => {
-      const updatedSessions = (data.focusSessions || []).filter((s) => s.id !== id);
-      await save({ ...data, focusSessions: updatedSessions });
+      await save((prev) => ({
+        ...prev,
+        focusSessions: (prev.focusSessions || []).filter((s) => s.id !== id),
+      }));
     },
-    [data, save]
+    [save]
   );
 
   // --- Task Actions ---
   const addTask = useCallback(
     async (text: string) => {
       if (!text.trim()) return;
-      const newTask: Task = {
-        id: Date.now().toString(),
-        text: text.trim(),
-        completed: false,
-        order: (data.tasks || []).length,
-        createdAt: new Date().toISOString(),
-      };
-      const updatedTasks = [...(data.tasks || []), newTask];
-      await save({ ...data, tasks: updatedTasks });
+      await save((prev) => {
+        const newTask: Task = {
+          id: Date.now().toString(),
+          text: text.trim(),
+          completed: false,
+          order: (prev.tasks || []).length,
+          createdAt: new Date().toISOString(),
+        };
+        return { ...prev, tasks: [...(prev.tasks || []), newTask] };
+      });
     },
-    [data, save]
+    [save]
   );
 
   const toggleTask = useCallback(
     async (id: string) => {
-      const updatedTasks = (data.tasks || []).map((t) =>
-        t.id === id ? { ...t, completed: !t.completed } : t
-      );
-      await save({ ...data, tasks: updatedTasks });
+      await save((prev) => ({
+        ...prev,
+        tasks: (prev.tasks || []).map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
+      }));
     },
-    [data, save]
+    [save]
   );
 
   const deleteTask = useCallback(
     async (id: string) => {
-      const updatedTasks = (data.tasks || []).filter((t) => t.id !== id);
-      await save({ ...data, tasks: updatedTasks });
+      await save((prev) => ({
+        ...prev,
+        tasks: (prev.tasks || []).filter((t) => t.id !== id),
+      }));
     },
-    [data, save]
+    [save]
   );
 
   const moveTask = useCallback(
     async (id: string, direction: 'up' | 'down') => {
-      const tasks = [...(data.tasks || [])];
-      const index = tasks.findIndex((t) => t.id === id);
-      if (index < 0) return;
+      await save((prev) => {
+        const tasks = [...(prev.tasks || [])];
+        const index = tasks.findIndex((t) => t.id === id);
+        if (index < 0) return prev;
 
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= tasks.length) return;
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= tasks.length) return prev;
 
-      const temp = tasks[index];
-      tasks[index] = tasks[targetIndex];
-      tasks[targetIndex] = temp;
+        const temp = tasks[index];
+        tasks[index] = tasks[targetIndex];
+        tasks[targetIndex] = temp;
 
-      const reindexed = tasks.map((t, i) => ({ ...t, order: i }));
-      await save({ ...data, tasks: reindexed });
+        const reindexed = tasks.map((t, i) => ({ ...t, order: i }));
+        return { ...prev, tasks: reindexed };
+      });
     },
-    [data, save]
+    [save]
   );
 
   const clearCompletedTasks = useCallback(async () => {
-    const updatedTasks = (data.tasks || []).filter((t) => !t.completed);
-    await save({ ...data, tasks: updatedTasks });
-  }, [data, save]);
+    await save((prev) => ({
+      ...prev,
+      tasks: (prev.tasks || []).filter((t) => !t.completed),
+    }));
+  }, [save]);
 
   // --- Note Actions ---
   const addNote = useCallback(
     async (title: string, content: string, color: 'indigo' | 'emerald' | 'amber' | 'rose' | 'violet' = 'indigo') => {
-      const newNote: Note = {
-        id: Date.now().toString(),
-        title: title.trim() || 'Untitled Note',
-        content: content.trim(),
-        pinned: false,
-        color,
-        createdAt: new Date().toISOString(),
-      };
-      const updatedNotes = [newNote, ...(data.notes || [])];
-      await save({ ...data, notes: updatedNotes });
+      await save((prev) => {
+        const newNote: Note = {
+          id: Date.now().toString(),
+          title: title.trim() || 'Untitled Note',
+          content: content.trim(),
+          pinned: false,
+          color,
+          createdAt: new Date().toISOString(),
+        };
+        return { ...prev, notes: [newNote, ...(prev.notes || [])] };
+      });
     },
-    [data, save]
+    [save]
   );
 
   const updateNote = useCallback(
     async (id: string, updates: Partial<Note>) => {
-      const updatedNotes = (data.notes || []).map((n) =>
-        n.id === id ? { ...n, ...updates } : n
-      );
-      await save({ ...data, notes: updatedNotes });
+      await save((prev) => ({
+        ...prev,
+        notes: (prev.notes || []).map((n) => (n.id === id ? { ...n, ...updates } : n)),
+      }));
     },
-    [data, save]
+    [save]
   );
 
   const togglePinNote = useCallback(
     async (id: string) => {
-      const updatedNotes = (data.notes || []).map((n) =>
-        n.id === id ? { ...n, pinned: !n.pinned } : n
-      );
-      await save({ ...data, notes: updatedNotes });
+      await save((prev) => ({
+        ...prev,
+        notes: (prev.notes || []).map((n) => (n.id === id ? { ...n, pinned: !n.pinned } : n)),
+      }));
     },
-    [data, save]
+    [save]
   );
 
   const deleteNote = useCallback(
     async (id: string) => {
-      const updatedNotes = (data.notes || []).filter((n) => n.id !== id);
-      await save({ ...data, notes: updatedNotes });
+      await save((prev) => ({
+        ...prev,
+        notes: (prev.notes || []).filter((n) => n.id !== id),
+      }));
     },
-    [data, save]
+    [save]
   );
 
   // --- Reflection Journal Actions ---
   const saveReflection = useCallback(
     async (text: string, verseRef?: string) => {
       if (!text.trim()) return;
-      const todayStr = new Date().toISOString().split('T')[0];
-      const existingIndex = (data.reflections || []).findIndex((r) => r.date === todayStr);
+      await save((prev) => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const existingIndex = (prev.reflections || []).findIndex((r) => r.date === todayStr);
 
-      let updatedReflections: ReflectionEntry[];
-      if (existingIndex >= 0) {
-        updatedReflections = [...(data.reflections || [])];
-        updatedReflections[existingIndex] = {
-          ...updatedReflections[existingIndex],
-          text: text.trim(),
-          verseRef: verseRef || updatedReflections[existingIndex].verseRef,
-        };
-      } else {
-        const newEntry: ReflectionEntry = {
-          id: Date.now().toString(),
-          date: todayStr,
-          text: text.trim(),
-          verseRef,
-          createdAt: new Date().toISOString(),
-        };
-        updatedReflections = [newEntry, ...(data.reflections || [])];
-      }
-
-      await save({ ...data, reflections: updatedReflections });
+        let updatedReflections: ReflectionEntry[];
+        if (existingIndex >= 0) {
+          updatedReflections = [...(prev.reflections || [])];
+          updatedReflections[existingIndex] = {
+            ...updatedReflections[existingIndex],
+            text: text.trim(),
+            verseRef: verseRef || updatedReflections[existingIndex].verseRef,
+          };
+        } else {
+          const newEntry: ReflectionEntry = {
+            id: Date.now().toString(),
+            date: todayStr,
+            text: text.trim(),
+            verseRef,
+            createdAt: new Date().toISOString(),
+          };
+          updatedReflections = [newEntry, ...(prev.reflections || [])];
+        }
+        return { ...prev, reflections: updatedReflections };
+      });
     },
-    [data, save]
+    [save]
   );
 
   const deleteReflection = useCallback(
     async (id: string) => {
-      const updatedReflections = (data.reflections || []).filter((r) => r.id !== id);
-      await save({ ...data, reflections: updatedReflections });
+      await save((prev) => ({
+        ...prev,
+        reflections: (prev.reflections || []).filter((r) => r.id !== id),
+      }));
     },
-    [data, save]
+    [save]
   );
 
   const toggleFavoriteVerse = useCallback(
     async (verseId: string) => {
-      const currentFavs = data.favoriteVerses || [];
-      const updatedFavs = currentFavs.includes(verseId)
-        ? currentFavs.filter((id) => id !== verseId)
-        : [...currentFavs, verseId];
-
-      await save({ ...data, favoriteVerses: updatedFavs });
+      await save((prev) => {
+        const currentFavs = prev.favoriteVerses || [];
+        const updatedFavs = currentFavs.includes(verseId)
+          ? currentFavs.filter((id) => id !== verseId)
+          : [...currentFavs, verseId];
+        return { ...prev, favoriteVerses: updatedFavs };
+      });
     },
-    [data, save]
+    [save]
   );
 
   return {
     data,
     loading,
-    save,
     addFocusSession,
     deleteFocusSession,
     addTask,

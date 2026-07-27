@@ -30,7 +30,7 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [totalDuration, setTotalDuration] = useState<number>(1500); // 25 min default
   const [timeLeft, setTimeLeft] = useState<number>(1500);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
-  const [label, setLabel] = useState<string>('Deep Work Session');
+  const [label, setLabel] = useState<string>('Deep Study Session');
   const [startTime, setStartTime] = useState<string | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -136,12 +136,14 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const endSession = useCallback((): FocusSession | null => {
     clearTimer();
 
-    if (elapsedSeconds > 10 && startTime) {
+    const actualDuration = elapsedSeconds > 0 ? elapsedSeconds : (totalDuration - timeLeft);
+
+    if (actualDuration > 0 && (startTime || status !== 'idle')) {
       const recordedSession: FocusSession = {
         id: Date.now().toString(),
-        startTime: startTime,
+        startTime: startTime || new Date().toISOString(),
         endTime: new Date().toISOString(),
-        duration: elapsedSeconds,
+        duration: actualDuration,
         type: sessionType,
         label,
         completed: status === 'completed' || timeLeft === 0,
@@ -162,7 +164,7 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setElapsedSeconds(0);
     setStartTime(null);
     return null;
-  }, [elapsedSeconds, startTime, sessionType, label, status, timeLeft, totalDuration, addFocusSession]);
+  }, [elapsedSeconds, totalDuration, timeLeft, startTime, status, sessionType, label, addFocusSession]);
 
   const progressPercent = totalDuration > 0
     ? Math.min(100, Math.max(0, ((totalDuration - timeLeft) / totalDuration) * 100))
