@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sidebar, NavTab } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
-import { useTheme } from './hooks/useTheme';
+import { ThemeModal } from './components/theme/ThemeModal';
 
 import { DashboardView } from './features/dashboard/DashboardView';
 import { FocusView } from './features/focus/FocusView';
@@ -11,8 +11,8 @@ import { BibleView } from './features/bible/BibleView';
 import { StatsView } from './features/stats/StatsView';
 
 function App() {
-  const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
 
   const tabLabels: Record<NavTab, string> = {
     dashboard: 'Home Dashboard',
@@ -38,7 +38,7 @@ function App() {
       case 'stats':
         return <StatsView />;
       default:
-        return <DashboardView />;
+        return <DashboardView onNavigate={setActiveTab} />;
     }
   };
 
@@ -48,15 +48,19 @@ function App() {
       
       <div className="main-layout">
         <Header
-          theme={theme}
-          onToggleTheme={toggleTheme}
           activeTabLabel={tabLabels[activeTab]}
+          onOpenThemeModal={() => setIsThemeModalOpen(true)}
         />
         
         <main className="content-viewport">
           {renderContent()}
         </main>
       </div>
+
+      <ThemeModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
+      />
     </div>
   );
 }

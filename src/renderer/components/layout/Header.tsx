@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { IconSun, IconMoon } from '../ui/Icons';
-import { Theme } from '../../hooks/useTheme';
+import { IconSun, IconMoon, IconPalette } from '../ui/Icons';
+import { useTheme } from '../../hooks/useTheme';
 
 interface HeaderProps {
-  theme: Theme;
-  onToggleTheme: () => void;
   activeTabLabel: string;
+  onOpenThemeModal: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ theme, onToggleTheme, activeTabLabel }) => {
+export const Header: React.FC<HeaderProps> = ({ activeTabLabel, onOpenThemeModal }) => {
   const [now, setNow] = useState(new Date());
+  const { activePreset, setTheme } = useTheme();
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60000);
@@ -32,6 +32,14 @@ export const Header: React.FC<HeaderProps> = ({ theme, onToggleTheme, activeTabL
     });
   };
 
+  const toggleLightDark = () => {
+    if (activePreset.mode === 'dark') {
+      setTheme('paper-ink');
+    } else {
+      setTheme('midnight-slate');
+    }
+  };
+
   return (
     <header className="app-header">
       <div className="header-left">
@@ -50,12 +58,21 @@ export const Header: React.FC<HeaderProps> = ({ theme, onToggleTheme, activeTabL
 
       <div className="header-right">
         <div className="view-indicator">{activeTabLabel}</div>
+
         <button
-          onClick={onToggleTheme}
-          className="btn-icon theme-toggle"
-          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+          onClick={onOpenThemeModal}
+          className="btn-icon theme-palette-btn"
+          title={`Theme Presets (${activePreset.name})`}
         >
-          {theme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+          <IconPalette size={18} />
+        </button>
+
+        <button
+          onClick={toggleLightDark}
+          className="btn-icon theme-toggle"
+          title={`Switch to ${activePreset.mode === 'dark' ? 'Light' : 'Dark'} Mode`}
+        >
+          {activePreset.mode === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
         </button>
       </div>
     </header>
