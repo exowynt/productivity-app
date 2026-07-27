@@ -26,7 +26,7 @@ function App() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardView />;
+        return <DashboardView onNavigate={setActiveTab} />;
       case 'focus':
         return <FocusView />;
       case 'tasks':
