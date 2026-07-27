@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { loadData, saveData } from './storage';
 import { AppData } from '../shared/types';
 import { enableSystemBlocker, disableSystemBlocker } from './hostsBlocker';
+import { startFocusGuard, stopFocusGuard } from './focusGuard';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -73,6 +74,7 @@ function createTray(): void {
         label: 'Quit Solitude',
         click: () => {
           disableSystemBlocker();
+          stopFocusGuard();
           app.quit();
         },
       },
@@ -112,15 +114,27 @@ function setupWebsiteBlocker(): void {
   ipcMain.handle('start-website-blocker', (_event, blocklist: string[]) => {
     activeBlocklist = blocklist || [];
     isBlockerActive = true;
-    const res = enableSystemBlocker(activeBlocklist);
-    return { success: res.success, active: true, count: activeBlocklist.length, error: res.error };
+    
+    // Activate hosts file blocker
+    const hostsRes = enableSystemBlocker(activeBlocklist);
+    // Activate active browser monitor & local proxy guard
+    const guardRes = startFocusGuard(activeBlocklist);
+
+    return {
+      success: true,
+      active: true,
+      count: activeBlocklist.length,
+      hostsSuccess: hostsRes.success,
+      error: hostsRes.error,
+    };
   });
 
   ipcMain.handle('stop-website-blocker', () => {
     isBlockerActive = false;
     activeBlocklist = [];
-    const res = disableSystemBlocker();
-    return { success: res.success, active: false, count: 0, error: res.error };
+    disableSystemBlocker();
+    stopFocusGuard();
+    return { success: true, active: false, count: 0 };
   });
 
   ipcMain.handle('get-website-blocker-status', () => {
@@ -144,10 +158,12 @@ app.whenReady().then(() => {
 
 app.on('will-quit', () => {
   disableSystemBlocker();
+  stopFocusGuard();
 });
 
 app.on('window-all-closed', () => {
   disableSystemBlocker();
+  stopFocusGuard();
   if (process.platform !== 'darwin') {
     app.quit();
   }
