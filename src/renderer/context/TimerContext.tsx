@@ -23,6 +23,32 @@ interface TimerContextValue {
 
 const TimerContext = createContext<TimerContextValue | undefined>(undefined);
 
+// Web Audio API Synthesizer Completion Chime
+const playChimeSound = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const audioCtx = new AudioContextClass();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 note
+    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.25); // A5 note
+    
+    gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.6);
+  } catch (err) {
+    console.warn('Audio chime skipped:', err);
+  }
+};
+
 export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { addFocusSession } = useStorage();
   const [status, setStatus] = useState<TimerStatus>('idle');
@@ -34,6 +60,13 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [startTime, setStartTime] = useState<string | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Request browser notification permissions if applicable
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -62,15 +95,20 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               completed: true,
             };
 
-            // Trigger desktop notification
+            // Play completion chime audio
+            playChimeSound();
+
+            // Trigger native desktop notification
+            const notifTitle = 'Focus Session Completed! 🎉';
+            const notifBody = `Great job! You completed your ${label || 'focus'} session.`;
+
             if (window.electronAPI?.showNotification) {
-              window.electronAPI.showNotification(
-                'Focus Session Completed! 🎉',
-                `Great job! You completed your ${label || 'focus'} session.`
-              );
+              window.electronAPI.showNotification(notifTitle, notifBody);
+            } else if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(notifTitle, { body: notifBody });
             }
 
-            // Save completed session
+            // Save completed session immediately to global storage
             addFocusSession(completedSession);
             return 0;
           }
