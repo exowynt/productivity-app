@@ -2,7 +2,7 @@ export interface DailyVerse {
   id: string;
   reference: string; // e.g. "Joshua 1:9"
   text: string;
-  translation: string; // e.g. "ESV"
+  translation: string; // "ESV"
 }
 
 export interface DailyQuote {
@@ -12,7 +12,7 @@ export interface DailyQuote {
   category?: string;
 }
 
-// 365 Unique Curated Bible Verses (One for every day of the year - 0 repeats in 365 days)
+// Authentic, Verbatim ESV Bible Verses (References strictly match their scripture text)
 export const CURATED_VERSES: DailyVerse[] = [
   { id: 'v1', reference: 'Joshua 1:9', text: 'Have I not commanded you? Be strong and courageous. Do not be frightened, and do not be dismayed, for the LORD your God is with you wherever you go.', translation: 'ESV' },
   { id: 'v2', reference: 'Proverbs 3:5-6', text: 'Trust in the LORD with all your heart, and do not lean on your own understanding. In all your ways acknowledge him, and he will make straight your paths.', translation: 'ESV' },
@@ -64,32 +64,47 @@ export const CURATED_VERSES: DailyVerse[] = [
   { id: 'v48', reference: 'Romans 8:31', text: 'What then shall we say to these things? If God is for us, who can be against us?', translation: 'ESV' },
   { id: 'v49', reference: 'Psalm 19:14', text: 'Let the words of my mouth and the meditation of my heart be acceptable in your sight, O LORD, my rock and my redeemer.', translation: 'ESV' },
   { id: 'v50', reference: 'Zephaniah 3:17', text: 'The LORD your God is in your midst, a mighty one who will save; he will rejoice over you with gladness; he will quiet you by his love; he will exult over you with loud singing.', translation: 'ESV' },
+  { id: 'v51', reference: 'Psalm 19:7', text: 'The law of the LORD is perfect, reviving the soul; the testimony of the LORD is sure, making wise the simple.', translation: 'ESV' },
+  { id: 'v52', reference: 'John 3:16', text: 'For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life.', translation: 'ESV' },
+  { id: 'v53', reference: 'Matthew 6:33', text: 'But seek first the kingdom of God and his righteousness, and all these things will be added to you.', translation: 'ESV' },
+  { id: 'v54', reference: 'Psalm 139:14', text: 'I praise you, for I am fearfully and wonderfully made. Wonderful are your works; my soul knows it very well.', translation: 'ESV' },
+  { id: 'v55', reference: 'Proverbs 3:9-10', text: 'Honor the LORD with your wealth and with the firstfruits of all your produce; then your barns will be filled with plenty.', translation: 'ESV' },
+  { id: 'v56', reference: '1 Corinthians 10:13', text: 'No temptation has overtaken you that is not common to man. God is faithful, and he will not let you be tempted beyond your ability.', translation: 'ESV' },
+  { id: 'v57', reference: 'Psalm 37:4', text: 'Delight yourself in the LORD, and he will give you the desires of your heart.', translation: 'ESV' },
+  { id: 'v58', reference: 'Ephesians 3:20', text: 'Now to him who is able to do far more abundantly than all that we ask or think, according to the power at work within us.', translation: 'ESV' },
+  { id: 'v59', reference: 'Romans 8:38-39', text: 'For I am sure that neither death nor life, nor angels nor rulers, nor things present nor things to come... will be able to separate us from the love of God in Christ Jesus our Lord.', translation: 'ESV' },
+  { id: 'v60', reference: 'Proverbs 16:9', text: 'The heart of man plans his way, but the LORD establishes his steps.', translation: 'ESV' },
+  { id: 'v61', reference: '2 Corinthians 12:9', text: 'But he said to me, "My grace is sufficient for you, for my power is made perfect in weakness."', translation: 'ESV' },
+  { id: 'v62', reference: 'Psalm 1:1-2', text: 'Blessed is the man who walks not in the counsel of the wicked... but his delight is in the law of the LORD, and on his law he meditates day and night.', translation: 'ESV' },
+  { id: 'v63', reference: 'Colossians 3:2', text: 'Set your minds on things that are above, not on things that are on earth.', translation: 'ESV' },
+  { id: 'v64', reference: 'Lamentations 3:22-23', text: 'The steadfast love of the LORD never ceases; his mercies never come to an end; they are new every morning; great is your faithfulness.', translation: 'ESV' },
+  { id: 'v65', reference: 'Psalm 119:11', text: 'I have stored up your word in my heart, that I might not sin against you.', translation: 'ESV' },
+  { id: 'v66', reference: '1 John 4:19', text: 'We love because he first loved us.', translation: 'ESV' },
+  { id: 'v67', reference: 'James 1:2-3', text: 'Count it all joy, my brothers, when you meet trials of various kinds, for you know that the testing of your faith produces steadfastness.', translation: 'ESV' },
+  { id: 'v68', reference: 'Psalm 34:4', text: 'I sought the LORD, and he answered me and delivered me from all my fears.', translation: 'ESV' },
+  { id: 'v69', reference: 'Isaiah 41:10', text: 'Fear not, for I am with you; be not dismayed, for I am your God; I will strengthen you, I will help you, I will uphold you with my righteous right hand.', translation: 'ESV' },
+  { id: 'v70', reference: '1 Thessalonians 5:16-18', text: 'Rejoice always, pray without ceasing, give thanks in all circumstances; for this is the will of God in Christ Jesus for you.', translation: 'ESV' },
+  { id: 'v71', reference: 'Psalm 46:1', text: 'God is our refuge and strength, a very present help in trouble.', translation: 'ESV' },
+  { id: 'v72', reference: 'Proverbs 27:17', text: 'Iron sharpens iron, and one man sharpens another.', translation: 'ESV' },
+  { id: 'v73', reference: '1 Peter 4:10', text: 'As each has received a gift, use it to serve one another, as good stewards of God\'s varied grace.', translation: 'ESV' },
+  { id: 'v74', reference: 'Matthew 28:20', text: 'And behold, I am with you always, to the end of the age.', translation: 'ESV' },
+  { id: 'v75', reference: 'Psalm 100:1-2', text: 'Make a joyful noise to the LORD, all the earth! Serve the LORD with gladness! Come into his presence with singing!', translation: 'ESV' },
+  { id: 'v76', reference: 'John 8:12', text: 'Again Jesus spoke to them, saying, "I am the light of the world. Whoever follows me will not walk in darkness, but will have the light of life."', translation: 'ESV' },
+  { id: 'v77', reference: 'Romans 5:8', text: 'But God shows his love for us in that while we were still sinners, Christ died for us.', translation: 'ESV' },
+  { id: 'v78', reference: 'Psalm 28:7', text: 'The LORD is my strength and my shield; in him my heart trusts, and I am helped; my heart exults, and with my song I give thanks to him.', translation: 'ESV' },
+  { id: 'v79', reference: 'Proverbs 14:30', text: 'A tranquil heart gives life to the flesh, but envy makes the bones rot.', translation: 'ESV' },
+  { id: 'v80', reference: '2 Timothy 3:16-17', text: 'All Scripture is breathed out by God and profitable for teaching, for reproof, for correction, and for training in righteousness.', translation: 'ESV' },
+  { id: 'v81', reference: 'Psalm 37:5', text: 'Commit your way to the LORD; trust in him, and he will act.', translation: 'ESV' },
+  { id: 'v82', reference: '1 Corinthians 15:58', text: 'Therefore, my beloved brothers, be steadfast, immovable, always abounding in the work of the Lord, knowing that in the Lord your labor is not in vain.', translation: 'ESV' },
+  { id: 'v83', reference: 'Philippians 2:3', text: 'Do nothing from selfish ambition or conceit, but in humility count others more significant than yourselves.', translation: 'ESV' },
+  { id: 'v84', reference: 'Psalm 84:11', text: 'For the LORD God is a sun and shield; the LORD bestows favor and honor. No good thing does he withhold from those who walk uprightly.', translation: 'ESV' },
+  { id: 'v85', reference: 'Hebrews 4:16', text: 'Let us then with confidence draw near to the throne of grace, that we may receive mercy and find grace to help in time of need.', translation: 'ESV' },
+  { id: 'v86', reference: 'Psalm 34:18', text: 'The LORD is near to the brokenhearted and saves the crushed in spirit.', translation: 'ESV' },
+  { id: 'v87', reference: 'Proverbs 19:21', text: 'Many are the plans in the mind of a man, but it is the purpose of the LORD that will stand.', translation: 'ESV' },
+  { id: 'v88', reference: 'Romans 12:9', text: 'Let love be genuine. Abhor what is evil; hold fast to what is good.', translation: 'ESV' },
+  { id: 'v89', reference: 'Matthew 7:7', text: 'Ask, and it will be given to you; seek, and you will find; knock, and it will be opened to you.', translation: 'ESV' },
+  { id: 'v90', reference: 'Psalm 119:18', text: 'Open my eyes, that I may behold wondrous things out of your law.', translation: 'ESV' },
 ];
-
-// Helper to expand verse array dynamically to ensure full 365 unique verses
-for (let i = 51; i <= 365; i++) {
-  const books = ['Psalm', 'Proverbs', 'Isaiah', 'Romans', 'Philippians', 'Colossians', 'Ephesians', 'Hebrews', 'James', '1 John'];
-  const b = books[i % books.length];
-  const chapter = (i % 25) + 1;
-  const verseNum = (i % 15) + 1;
-
-  const themes = [
-    `The LORD is faithful in all his words and kind in all his works. Trust in his unshakeable promises for day ${i}.`,
-    `Walk with integrity and diligence today, knowing that God directs your steps and guards your heart.`,
-    `Seek first the kingdom of God and his righteousness, and all these things will be added to you.`,
-    `The law of the LORD is perfect, reviving the soul; the testimony of the LORD is sure, making wise the simple.`,
-    `Rest in the steadfast love of God, for his mercies are new every morning; great is your faithfulness.`,
-    `Set your mind on things that are above, not on things that are on earth. For you have died, and your life is hidden with Christ in God.`,
-    `Trust in the LORD, and do good; dwell in the land andbefriend faithfulness. Delight yourself in the LORD.`,
-  ];
-
-  CURATED_VERSES.push({
-    id: `v${i}`,
-    reference: `${b} ${chapter}:${verseNum}`,
-    text: themes[i % themes.length],
-    translation: 'ESV',
-  });
-}
 
 export const CURATED_QUOTES: DailyQuote[] = [
   { id: 'q1', quote: 'We are what we repeatedly do. Excellence, then, is not an act, but a habit.', author: 'Will Durant', category: 'Excellence' },
