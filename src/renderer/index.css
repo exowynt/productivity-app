@@ -278,12 +278,39 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--shadow-sm);
 }
 
+.active-timer-pill {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.12);
+}
+
 .focus-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--color-success);
   box-shadow: 0 0 8px var(--color-success);
+}
+
+.status-dot-running {
+  background: var(--color-success);
+  box-shadow: 0 0 8px var(--color-success);
+}
+
+.status-dot-paused {
+  background: var(--color-warning);
+  box-shadow: 0 0 8px var(--color-warning);
+}
+
+.live-timer-text {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent-primary);
+}
+
+.live-timer-label {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
 }
 
 .focus-question {

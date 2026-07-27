@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { IconSun, IconMoon, IconPalette } from '../ui/Icons';
+import { IconSun, IconMoon, IconPalette, IconClock } from '../ui/Icons';
 import { useTheme } from '../../hooks/useTheme';
+import { useGlobalTimer } from '../../context/TimerContext';
+import { formatMMSS } from '../../utils/focusMetrics';
 
 interface HeaderProps {
   activeTabLabel: string;
@@ -10,6 +12,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ activeTabLabel, onOpenThemeModal }) => {
   const [now, setNow] = useState(new Date());
   const { activePreset, setTheme } = useTheme();
+  const { status, timeLeft, label } = useGlobalTimer();
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60000);
@@ -40,6 +43,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTabLabel, onOpenThemeModal
     }
   };
 
+  const isTimerActive = status === 'running' || status === 'paused';
+
   return (
     <header className="app-header">
       <div className="header-left">
@@ -50,10 +55,19 @@ export const Header: React.FC<HeaderProps> = ({ activeTabLabel, onOpenThemeModal
       </div>
 
       <div className="header-center">
-        <div className="focus-pill">
-          <span className="focus-dot" />
-          <span className="focus-question">What should I be doing right now?</span>
-        </div>
+        {isTimerActive ? (
+          <div className="focus-pill active-timer-pill">
+            <span className={`focus-dot status-dot-${status}`} />
+            <IconClock size={16} className="timer-icon-spin" />
+            <span className="live-timer-text">{formatMMSS(timeLeft)}</span>
+            <span className="live-timer-label">— {label}</span>
+          </div>
+        ) : (
+          <div className="focus-pill">
+            <span className="focus-dot" />
+            <span className="focus-question">What should I be doing right now?</span>
+          </div>
+        )}
       </div>
 
       <div className="header-right">

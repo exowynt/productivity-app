@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTimer, SessionType } from '../../hooks/useTimer';
 import { useStorage } from '../../hooks/useStorage';
 import {
@@ -18,17 +18,11 @@ import {
   IconClock,
   IconFocus,
 } from '../../components/ui/Icons';
-import { FocusSession } from '../../../shared/types';
 
 export const FocusView: React.FC = () => {
-  const { data, addFocusSession, deleteFocusSession } = useStorage();
+  const { data, deleteFocusSession } = useStorage();
   const [selectedLabel, setSelectedLabel] = useState<string>('Deep Study Session');
   const [customMinutesInput, setCustomMinutesInput] = useState<string>('30');
-
-  // Timer completion handler
-  const handleComplete = (session: FocusSession) => {
-    addFocusSession(session);
-  };
 
   const {
     status,
@@ -41,18 +35,7 @@ export const FocusView: React.FC = () => {
     resumeTimer,
     resetTimer,
     endSession,
-  } = useTimer({ onComplete: handleComplete });
-
-  // Update window title with countdown
-  useEffect(() => {
-    if (status === 'running') {
-      document.title = `(${formatMMSS(timeLeft)}) Focus Mode — Solitude`;
-    } else if (status === 'paused') {
-      document.title = `(Paused) Focus Mode — Solitude`;
-    } else {
-      document.title = 'Personal Productivity Dashboard';
-    }
-  }, [status, timeLeft]);
+  } = useTimer();
 
   // Handle Preset Clicks
   const handlePresetSelect = (minutes: number, type: SessionType = 'pomodoro', defaultLabel?: string) => {
@@ -70,10 +53,7 @@ export const FocusView: React.FC = () => {
 
   // Handle End & Save Session manually
   const handleManualSave = () => {
-    const recorded = endSession();
-    if (recorded) {
-      addFocusSession(recorded);
-    }
+    endSession();
   };
 
   // Metrics calculation
