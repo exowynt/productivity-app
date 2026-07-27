@@ -4,12 +4,13 @@
   "description": "Desktop-first personal productivity dashboard",
   "main": "dist/main/main/index.js",
   "scripts": {
-    "dev:renderer": "vite",
-    "dev:main": "tsc -p src/main/tsconfig.json && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron dist/main/main/index.js",
+    "dev:renderer": "npx vite",
+    "dev:main": "npx tsc -p src/main/tsconfig.json && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron dist/main/main/index.js",
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
-    "build:renderer": "vite build",
-    "build:main": "tsc -p src/main/tsconfig.json",
-    "build": "npm run build:renderer && npm run build:main",
+    "build:icon": "node scripts/createIco.js",
+    "build:renderer": "npx vite build",
+    "build:main": "npx tsc -p src/main/tsconfig.json",
+    "build": "npm run build:icon && npm run build:renderer && npm run build:main",
     "dist": "npm run build && npx electron-builder --win nsis",
     "dist:dir": "npm run build && npx electron-builder --win --dir",
     "start": "electron dist/main/main/index.js"
@@ -22,9 +23,11 @@
     },
     "files": [
       "dist/**/*",
+      "build/**/*",
       "package.json"
     ],
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         "nsis",
         "portable"
@@ -34,5 +37,19 @@
   "dependencies": {
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "concurrently": "^10.0.4",
+    "cross-env": "^10.1.0",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
+    "png-to-ico": "^2.1.8",
+    "pngjs": "^7.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.1.5"
   }
 }

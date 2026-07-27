@@ -1,0 +1,48 @@
+const fs = require('fs');
+const path = require('path');
+
+const buildDir = path.join(__dirname, '../build');
+if (!fs.existsSync(buildDir)) {
+  fs.mkdirSync(buildDir, { recursive: true });
+}
+
+// 256x256 Vector SVG Icon
+const svgContent = `<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="50%" stop-color="#1E1B4B"/>
+      <stop offset="100%" stop-color="#311042"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="50%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+    <linearGradient id="flameGrad" x1="0" y1="0" x2="0" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Rounded Canvas -->
+  <rect width="256" height="256" rx="56" fill="url(#bgGrad)" />
+  <rect x="2" y="2" width="252" height="252" rx="54" stroke="url(#accentGrad)" stroke-width="4" stroke-opacity="0.5" fill="none"/>
+
+  <!-- Glowing Outer Ring -->
+  <circle cx="128" cy="128" r="84" stroke="url(#accentGrad)" stroke-width="12" stroke-dasharray="380 120" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- Central Focus Diamond -->
+  <rect x="96" y="96" width="64" height="64" rx="16" transform="rotate(45 128 128)" fill="url(#accentGrad)"/>
+
+  <!-- Inner Spark Flame / Star -->
+  <path d="M128 82 C132 106 142 116 166 128 C142 140 132 150 128 174 C124 150 114 140 90 128 C114 116 124 106 128 82 Z" fill="#FFFFFF" />
+</svg>`;
+
+const svgPath = path.join(buildDir, 'icon.svg');
+fs.writeFileSync(svgPath, svgContent, 'utf8');
+console.log('Generated build/icon.svg successfully');

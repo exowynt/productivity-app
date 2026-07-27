@@ -7,13 +7,26 @@ import { AppData } from '../shared/types';
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
+function getIconPath(): string {
+  const appPath = app.getAppPath();
+  const candidates = [
+    path.join(appPath, 'build/icon.png'),
+    path.join(__dirname, '../../build/icon.png'),
+    path.join(__dirname, '../build/icon.png'),
+  ];
+  return candidates.find((p) => fs.existsSync(p)) || '';
+}
+
 function createWindow(): void {
+  const iconPath = getIconPath();
+
   mainWindow = new BrowserWindow({
     width: 1240,
     height: 820,
     minWidth: 900,
     minHeight: 650,
     title: 'Solitude — Personal Productivity Dashboard',
+    icon: iconPath || undefined,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -48,7 +61,8 @@ function createWindow(): void {
 
 function createTray(): void {
   try {
-    const icon = nativeImage.createEmpty();
+    const iconPath = getIconPath();
+    const icon = iconPath ? nativeImage.createFromPath(iconPath) : nativeImage.createEmpty();
     tray = new Tray(icon);
     tray.setToolTip('Solitude — Personal Productivity Hub');
 
