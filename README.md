@@ -9,7 +9,7 @@
 
 ---
 
-![Solitude Preview](assets/preview.jpg)
+![Solitude Preview](assets/preview.png)
 
 ---
 
