@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { loadData, saveData } from './storage';
 import { AppData } from '../shared/types';
 import { enableSystemBlocker, disableSystemBlocker } from './hostsBlocker';
-import { startFocusGuard, stopFocusGuard } from './focusGuard';
+import { startFocusGuard, stopFocusGuard, setGuardMainWindow } from './focusGuard';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -153,6 +153,7 @@ app.whenReady().then(() => {
 
   setupWebsiteBlocker();
   createWindow();
+  setGuardMainWindow(() => mainWindow);
   createTray();
 });
 

@@ -67,18 +67,25 @@ export const FocusView: React.FC = () => {
           }
         });
       }
-      document.title = `(${formatMMSS(timeLeft)}) Focus Mode — Solitude`;
-    } else if (status === 'paused') {
-      document.title = `(Paused) Focus Mode — Solitude`;
     } else {
       if (window.electronAPI) {
         window.electronAPI.stopWebsiteBlocker().then(() => {
           setIsShieldActive(false);
         });
       }
+    }
+  }, [status, blockedSites]);
+
+  // Update window title on countdown tick
+  useEffect(() => {
+    if (status === 'running') {
+      document.title = `(${formatMMSS(timeLeft)}) Focus Mode — Solitude`;
+    } else if (status === 'paused') {
+      document.title = `(Paused) Focus Mode — Solitude`;
+    } else {
       document.title = 'Personal Productivity Dashboard';
     }
-  }, [status, timeLeft, blockedSites]);
+  }, [status, timeLeft]);
 
   // Handle Preset Clicks
   const handlePresetSelect = (minutes: number, type: SessionType = 'pomodoro', defaultLabel?: string) => {

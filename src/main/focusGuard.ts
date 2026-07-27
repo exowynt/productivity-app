@@ -1,12 +1,13 @@
 import * as http from 'http';
 import { exec } from 'child_process';
+import { BrowserWindow, Notification } from 'electron';
 
 let proxyServer: http.Server | null = null;
 let monitorInterval: NodeJS.Timeout | null = null;
 let isGuardActive = false;
 let blockedDomains: string[] = [];
+let targetWindowGetter: () => BrowserWindow | null = () => null;
 
-// Lightweight HTML page served when a blocked website is accessed
 const BLOCKED_HTML = `
 <!DOCTYPE html>
 <html>
@@ -36,7 +37,7 @@ const BLOCKED_HTML = `
       max-width: 480px;
     }
     .shield-icon {
-      font-size: 3rem;
+      font-size: 3.5rem;
       margin-bottom: 1rem;
     }
     h1 {
@@ -51,7 +52,7 @@ const BLOCKED_HTML = `
     }
     .badge {
       display: inline-block;
-      margin-top: 1rem;
+      margin-top: 1.25rem;
       padding: 0.4rem 0.85rem;
       background: rgba(99, 102, 241, 0.2);
       color: #818CF8;
@@ -72,13 +73,14 @@ const BLOCKED_HTML = `
 </html>
 `;
 
-/**
- * Start local HTTP proxy server on port 8899 to serve blocked page
- */
+export function setGuardMainWindow(getWin: () => BrowserWindow | null): void {
+  targetWindowGetter = getWin;
+}
+
 function startLocalBlockServer(): void {
   if (proxyServer) return;
 
-  proxyServer = http.createServer((req, res) => {
+  proxyServer = http.createServer((_req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(BLOCKED_HTML);
   });
@@ -99,78 +101,82 @@ function stopLocalBlockServer(): void {
   }
 }
 
+// Track recently terminated PIDs to prevent repeated log spam
+const recentlyKilledPids = new Set<string>();
+
 /**
- * Windows Window Title Monitor:
- * Scans open browser process windows every 2s.
- * If a browser title matches any blocked domain, minimizes or closes the tab/window.
+ * Native Windows Process Scanner using tasklist /v /fo csv:
+ * Scans open window titles across browsers (Chrome, Edge, Firefox, Brave, Opera).
+ * If a window title matches any blocked domain, terminates the tab process & pops Solitude to front!
  */
 function scanAndEnforceBrowserTitles(): void {
-  if (!isGuardActive || blockedDomains.length === 0) return;
+  if (!isGuardActive || blockedDomains.length === 0 || process.platform !== 'win32') return;
 
-  if (process.platform !== 'win32') return;
-
-  // PowerShell script to get process window titles
-  const psScript = `
-    $blocked = @(${blockedDomains.map((d) => `"${d.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '')}"`).join(',')});
-    Get-Process | Where-Object { $_.MainWindowTitle } | ForEach-Object {
-      $title = $_.MainWindowTitle.ToLower();
-      $proc = $_.ProcessName.ToLower();
-      foreach ($b in $blocked) {
-        $cleanTag = $b.Split('.')[0];
-        if ($title -like "*$cleanTag*" -or $title -like "*$b*") {
-          Write-Output "MATCH:$($_.Id):$($proc):$($_.MainWindowTitle)"
-        }
-      }
-    }
-  `.replace(/\n/g, ' ');
-
-  exec(`powershell -NoProfile -ExecutionPolicy Bypass -Command "${psScript}"`, (err, stdout) => {
+  exec('tasklist /v /fo csv', (err, stdout) => {
     if (err || !stdout) return;
 
-    const lines = stdout.split('\n').map((l) => l.trim()).filter(Boolean);
+    const lines = stdout.split(/\r?\n/);
     lines.forEach((line) => {
-      if (line.startsWith('MATCH:')) {
-        const parts = line.split(':');
-        const pid = parts[1];
-        const procName = parts[2];
-        const title = parts.slice(3).join(':');
+      if (!line || line.startsWith('"Image Name"')) return;
 
-        console.log(`[Focus Guard Enforcer] Detected blocked site in title: "${title}" (PID: ${pid}, Proc: ${procName})`);
+      const parts = line.split('","').map((p) => p.replace(/^"|"$/g, ''));
+      if (parts.length < 9) return;
 
-        // Close or minimize window if it's a browser tab matching blocked site
-        if (pid && (procName.includes('chrome') || procName.includes('edge') || procName.includes('firefox') || procName.includes('brave') || procName.includes('opera'))) {
-          // Send minimize signal to browser window or close process
-          exec(`powershell -NoProfile -ExecutionPolicy Bypass -Command "(New-Object -ComObject wscript.shell).SendKeys('^w')"`);
+      const procName = parts[0].toLowerCase();
+      const pid = parts[1];
+      const windowTitle = parts[8].toLowerCase();
+
+      if (!windowTitle || windowTitle === 'n/a' || recentlyKilledPids.has(pid)) return;
+
+      const isBrowser =
+        procName.includes('chrome') ||
+        procName.includes('msedge') ||
+        procName.includes('firefox') ||
+        procName.includes('brave') ||
+        procName.includes('opera') ||
+        procName.includes('applicationframehost');
+
+      if (!isBrowser) return;
+
+      // Check against blocked domains
+      const matchedDomain = blockedDomains.find((domain) => {
+        const clean = domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '');
+        const keyword = clean.split('.')[0]; // e.g. "youtube", "reddit", "twitter", "facebook"
+
+        if (windowTitle.includes(clean)) return true;
+        if (keyword.length >= 3 && windowTitle.includes(keyword)) return true;
+        return false;
+      });
+
+      if (matchedDomain) {
+        console.log(`[Focus Guard Enforcer] Closing blocked site window: "${parts[8]}" (PID: ${pid})`);
+        recentlyKilledPids.add(pid);
+        setTimeout(() => recentlyKilledPids.delete(pid), 5000);
+
+        // Terminate specific browser process tab
+        exec(`taskkill /F /PID ${pid}`, (killErr) => {
+          if (killErr) {
+            // Fallback SendKeys if taskkill was protected
+            exec(`powershell -NoProfile -ExecutionPolicy Bypass -Command "(New-Object -ComObject wscript.shell).SendKeys('^w')"`);
+          }
+        });
+
+        // Notify user & bring Solitude to front
+        if (Notification.isSupported()) {
+          new Notification({
+            title: 'Focus Shield Active 🛡️',
+            body: `Blocked site "${matchedDomain}" was closed to keep you on track.`,
+          }).show();
+        }
+
+        const mainWin = targetWindowGetter();
+        if (mainWin) {
+          mainWin.show();
+          mainWin.focus();
         }
       }
     });
   });
-}
-
-/**
- * Enable Windows Internet System Proxy PAC script or hosts loopback
- */
-function setWindowsSystemProxy(enable: boolean, domains: string[] = []): void {
-  if (process.platform !== 'win32') return;
-
-  if (enable && domains.length > 0) {
-    const cleanList = domains.map((d) => d.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, ''));
-    
-    // Configure PAC script or loopback rules via reg commands
-    const psCmd = `
-      $reg = "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
-      Set-ItemProperty -Path $reg -Name ProxyEnable -Value 0;
-    `.replace(/\n/g, ' ');
-
-    exec(`powershell -NoProfile -ExecutionPolicy Bypass -Command "${psCmd}"`);
-  } else {
-    const psCmd = `
-      $reg = "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
-      Set-ItemProperty -Path $reg -Name ProxyEnable -Value 0;
-    `.replace(/\n/g, ' ');
-
-    exec(`powershell -NoProfile -ExecutionPolicy Bypass -Command "${psCmd}"`);
-  }
 }
 
 export function startFocusGuard(domains: string[]): { active: boolean; count: number } {
@@ -180,10 +186,9 @@ export function startFocusGuard(domains: string[]): { active: boolean; count: nu
   startLocalBlockServer();
 
   if (monitorInterval) clearInterval(monitorInterval);
-  monitorInterval = setInterval(scanAndEnforceBrowserTitles, 2000);
-  scanAndEnforceBrowserTitles(); // Run immediate first scan
-
-  setWindowsSystemProxy(true, blockedDomains);
+  // Run scan every 1000ms (1 second) for instant response
+  monitorInterval = setInterval(scanAndEnforceBrowserTitles, 1000);
+  scanAndEnforceBrowserTitles(); // Run immediate scan
 
   return { active: true, count: blockedDomains.length };
 }
@@ -198,7 +203,6 @@ export function stopFocusGuard(): { active: false; count: 0 } {
   }
 
   stopLocalBlockServer();
-  setWindowsSystemProxy(false);
 
   return { active: false, count: 0 };
 }
