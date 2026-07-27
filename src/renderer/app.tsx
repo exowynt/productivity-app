@@ -1,31 +1,62 @@
-import { useStorage } from './hooks/useStorage';
+import React, { useState } from 'react';
+import { Sidebar, NavTab } from './components/layout/Sidebar';
+import { Header } from './components/layout/Header';
+import { useTheme } from './hooks/useTheme';
+
+import { DashboardView } from './features/dashboard/DashboardView';
+import { FocusView } from './features/focus/FocusView';
+import { TasksView } from './features/tasks/TasksView';
+import { NotesView } from './features/notes/NotesView';
+import { BibleView } from './features/bible/BibleView';
+import { StatsView } from './features/stats/StatsView';
 
 function App() {
-  const { data, loading, update } = useStorage();
+  const { theme, toggleTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
 
-  if (loading) {
-    return <div style={{ padding: '2rem' }}>Loading...</div>;
-  }
+  const tabLabels: Record<NavTab, string> = {
+    dashboard: 'Home Dashboard',
+    focus: 'Focus Mode',
+    tasks: "Today's Tasks",
+    notes: 'Quick Notes',
+    bible: 'Bible & Reflection',
+    stats: 'Study Analytics',
+  };
 
-  // Get counter from settings or default to 0
-  const counter = (data.settings.counter as number) || 0;
-
-  const incrementCounter = () => {
-    const newCounter = counter + 1;
-    update({ settings: { ...data.settings, counter: newCounter } });
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <DashboardView />;
+      case 'focus':
+        return <FocusView />;
+      case 'tasks':
+        return <TasksView />;
+      case 'notes':
+        return <NotesView />;
+      case 'bible':
+        return <BibleView />;
+      case 'stats':
+        return <StatsView />;
+      default:
+        return <DashboardView />;
+    }
   };
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>Focus Dashboard</h1>
-      <p>Electron + React data layer is working!</p>
-      <div style={{ marginTop: '1rem' }}>
-        <p>Counter: {counter}</p>
-        <button onClick={incrementCounter}>Increment</button>
+    <div className="app-container">
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      <div className="main-layout">
+        <Header
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          activeTabLabel={tabLabels[activeTab]}
+        />
+        
+        <main className="content-viewport">
+          {renderContent()}
+        </main>
       </div>
-      <p style={{ marginTop: '1rem', color: '#666' }}>
-        Close and reopen the app — the counter persists.
-      </p>
     </div>
   );
 }

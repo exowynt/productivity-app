@@ -4,8 +4,10 @@ export interface FocusSession {
   id: string;
   startTime: string; // ISO 8601
   endTime?: string;
-  duration: number;  // seconds
-  type: 'pomodoro' | 'custom';
+  duration: number;  // total elapsed seconds
+  type: 'pomodoro' | 'custom' | 'break';
+  label?: string;    // e.g., "Coding", "Deep Reading", "Math Study"
+  completed?: boolean;
 }
 
 export interface Task {
@@ -27,5 +29,5 @@ export interface AppData {
   focusSessions: FocusSession[];
   tasks: Task[];
   notes: Note[];
-  settings: Record<string, unknown>; // expand later
+  settings: Record<string, unknown>; // e.g. dailyGoalMinutes, counter, etc.
 }
