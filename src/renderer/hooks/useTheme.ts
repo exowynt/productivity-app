@@ -10,11 +10,19 @@ export function useTheme() {
 
   const activePreset: ThemePreset = getThemePreset(activeThemeId);
 
-  // Apply CSS variables to root element whenever theme changes
+  // Apply CSS variables & artistic wallpaper attributes to root element
   const applyThemeVariables = useCallback((preset: ThemePreset) => {
     const root = document.documentElement;
     root.setAttribute('data-theme', preset.mode);
     root.setAttribute('data-theme-preset', preset.id);
+
+    if (preset.category === 'artistic' && preset.bgImage) {
+      root.setAttribute('data-artistic-theme', 'true');
+      root.style.setProperty('--bg-image', `url(${preset.bgImage})`);
+    } else {
+      root.removeAttribute('data-artistic-theme');
+      root.style.removeProperty('--bg-image');
+    }
 
     Object.entries(preset.variables).forEach(([key, value]) => {
       root.style.setProperty(key, value);

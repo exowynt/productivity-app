@@ -909,6 +909,108 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.4;
 }
 
+/* ARTISTIC WALLPAPER MODAL CARDS */
+.artistic-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.artistic-preset-card {
+  height: 140px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-size: cover;
+  background-position: center;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.artistic-preset-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.artistic-preset-card.active {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.artistic-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.artistic-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.artistic-info .preset-name {
+  color: #FFFFFF;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.artistic-info .preset-desc {
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* ARTISTIC WALLPAPER FROSTED GLASS OVERRIDES */
+html[data-artistic-theme="true"] body,
+html[data-artistic-theme="true"] .app-container {
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+html[data-artistic-theme="true"] .glass-card,
+html[data-artistic-theme="true"] .sidebar,
+html[data-artistic-theme="true"] .app-header {
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-artistic-theme="true"] .category-input,
+html[data-artistic-theme="true"] .task-input,
+html[data-artistic-theme="true"] .note-title-input,
+html[data-artistic-theme="true"] .note-content-textarea,
+html[data-artistic-theme="true"] .journal-textarea,
+html[data-artistic-theme="true"] .focus-pill {
+  background: rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(10px) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html[data-artistic-theme="true"] .task-item,
+html[data-artistic-theme="true"] .widget-task-item,
+html[data-artistic-theme="true"] .reflection-item,
+html[data-artistic-theme="true"] .favorite-verse-item,
+html[data-artistic-theme="true"] .preset-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(12px) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
 /* COMPACT DENSITY MODE OVERRIDES */
 html[data-density="compact"] .content-viewport {
   padding: 1rem 1.25rem;

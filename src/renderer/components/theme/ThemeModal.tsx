@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '../../hooks/useTheme';
-import { useDensity, AppDensity } from '../../hooks/useDensity';
+import { useDensity } from '../../hooks/useDensity';
 import { IconPalette, IconX, IconCheck, IconSparkles } from '../ui/Icons';
 
 interface ThemeModalProps {
@@ -14,6 +14,9 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
+  const artisticPresets = presets.filter((p) => p.category === 'artistic');
+  const solidPresets = presets.filter((p) => p.category !== 'artistic');
+
   return (
     <div className="modal-backdrop animate-fade-in" onClick={onClose}>
       <div className="glass-card theme-modal-card" onClick={(e) => e.stopPropagation()}>
@@ -22,9 +25,9 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({ isOpen, onClose }) => {
           <div className="header-title-box">
             <IconPalette size={22} className="theme-header-icon" />
             <div>
-              <h3>Appearance & Layout Design</h3>
+              <h3>Appearance & Design Themes</h3>
               <p className="theme-header-sub">
-                Customize color presets and UI layout density modes.
+                Choose between artistic ambient wallpapers or clean developer color palettes.
               </p>
             </div>
           </div>
@@ -61,11 +64,43 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Presets Grid */}
+        {/* Artistic Wallpaper Themes */}
         <div className="presets-section">
-          <h4 className="section-subtitle-bold">Color Theme Presets</h4>
+          <h4 className="section-subtitle-bold">🖼️ Artistic & Ambient Wallpapers</h4>
+          <div className="artistic-presets-grid">
+            {artisticPresets.map((preset) => {
+              const isActive = preset.id === activeThemeId;
+              return (
+                <div
+                  key={preset.id}
+                  className={`artistic-preset-card ${isActive ? 'active' : ''}`}
+                  onClick={() => setTheme(preset.id)}
+                  style={{ backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.75)), url(${preset.bgImage})` }}
+                >
+                  <div className="artistic-card-top">
+                    <span className="artistic-badge">Wallpaper</span>
+                    {isActive && (
+                      <span className="active-theme-badge">
+                        <IconCheck size={12} /> Active
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="artistic-info">
+                    <h4 className="preset-name">{preset.name}</h4>
+                    <p className="preset-desc">{preset.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Solid Color Presets */}
+        <div className="presets-section">
+          <h4 className="section-subtitle-bold">🎨 Developer Color Palettes</h4>
           <div className="theme-presets-grid">
-            {presets.map((preset) => {
+            {solidPresets.map((preset) => {
               const isActive = preset.id === activeThemeId;
               return (
                 <div

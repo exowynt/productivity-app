@@ -1,3 +1,8 @@
+import snowyPeakImg from '../renderer/assets/themes/snowy_peak.jpg';
+import alpineLakeImg from '../renderer/assets/themes/alpine_lake.jpg';
+import roseSunsetImg from '../renderer/assets/themes/rose_sunset.jpg';
+import twilightPromiseImg from '../renderer/assets/themes/twilight_promise.jpg';
+
 export interface ThemePreset {
   id: string;
   name: string;
@@ -5,14 +10,128 @@ export interface ThemePreset {
   mode: 'dark' | 'light';
   previewColors: [string, string, string]; // [bgApp, bgCard, accent]
   variables: Record<string, string>;
+  bgImage?: string;
+  category?: 'artistic' | 'solid';
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
+  // --- Artistic Wallpaper Themes (User Supplied) ---
+  {
+    id: 'snowy-peak',
+    name: 'Snowy Peak 🏔️',
+    description: 'Majestic snowy mountain summit above cloud layer',
+    mode: 'dark',
+    category: 'artistic',
+    bgImage: snowyPeakImg,
+    previewColors: ['#0F172A', '#1E293B', '#38BDF8'],
+    variables: {
+      '--bg-app': 'transparent',
+      '--bg-sidebar': 'rgba(15, 23, 42, 0.55)',
+      '--bg-header': 'rgba(15, 23, 42, 0.55)',
+      '--bg-card': 'rgba(30, 41, 59, 0.52)',
+      '--bg-card-hover': 'rgba(56, 189, 248, 0.15)',
+      '--bg-card-active': 'rgba(56, 189, 248, 0.25)',
+      '--bg-input': 'rgba(8, 13, 26, 0.60)',
+      '--border-subtle': 'rgba(255, 255, 255, 0.14)',
+      '--border-focus': 'rgba(56, 189, 248, 0.6)',
+      '--text-primary': '#F8FAFC',
+      '--text-secondary': '#BAE6FD',
+      '--text-muted': '#38BDF8',
+      '--accent-primary': '#0284C7',
+      '--accent-primary-hover': '#38BDF8',
+      '--accent-gradient': 'linear-gradient(135deg, #0284C7 0%, #38BDF8 100%)',
+      '--accent-glow': 'rgba(56, 189, 248, 0.35)',
+    },
+  },
+  {
+    id: 'alpine-lake',
+    name: 'Alpine Lake Lodge 🌲',
+    description: 'Moody mountain lake & autumnal wooden boathouse',
+    mode: 'dark',
+    category: 'artistic',
+    bgImage: alpineLakeImg,
+    previewColors: ['#12161A', '#161B20', '#F97316'],
+    variables: {
+      '--bg-app': 'transparent',
+      '--bg-sidebar': 'rgba(18, 22, 26, 0.58)',
+      '--bg-header': 'rgba(18, 22, 26, 0.58)',
+      '--bg-card': 'rgba(22, 27, 32, 0.55)',
+      '--bg-card-hover': 'rgba(249, 115, 22, 0.15)',
+      '--bg-card-active': 'rgba(249, 115, 22, 0.25)',
+      '--bg-input': 'rgba(10, 14, 18, 0.65)',
+      '--border-subtle': 'rgba(255, 255, 255, 0.14)',
+      '--border-focus': 'rgba(249, 115, 22, 0.6)',
+      '--text-primary': '#FDFBF7',
+      '--text-secondary': '#FDBA74',
+      '--text-muted': '#A8A29E',
+      '--accent-primary': '#F97316',
+      '--accent-primary-hover': '#10B981',
+      '--accent-gradient': 'linear-gradient(135deg, #F97316 0%, #10B981 100%)',
+      '--accent-glow': 'rgba(249, 115, 22, 0.35)',
+    },
+  },
+  {
+    id: 'rose-sunset',
+    name: 'Rose Sunset Horizon 🌅',
+    description: 'Serene mountain ridge sunset with soft rose & peach sky',
+    mode: 'dark',
+    category: 'artistic',
+    bgImage: roseSunsetImg,
+    previewColors: ['#1A1118', '#20151D', '#FB7185'],
+    variables: {
+      '--bg-app': 'transparent',
+      '--bg-sidebar': 'rgba(26, 17, 24, 0.55)',
+      '--bg-header': 'rgba(26, 17, 24, 0.55)',
+      '--bg-card': 'rgba(32, 21, 29, 0.52)',
+      '--bg-card-hover': 'rgba(251, 113, 133, 0.15)',
+      '--bg-card-active': 'rgba(251, 113, 133, 0.25)',
+      '--bg-input': 'rgba(14, 8, 12, 0.60)',
+      '--border-subtle': 'rgba(255, 255, 255, 0.14)',
+      '--border-focus': 'rgba(251, 113, 133, 0.6)',
+      '--text-primary': '#FFF1F2',
+      '--text-secondary': '#FECDD3',
+      '--text-muted': '#FDA4AF',
+      '--accent-primary': '#FB7185',
+      '--accent-primary-hover': '#F43F5E',
+      '--accent-gradient': 'linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)',
+      '--accent-glow': 'rgba(251, 113, 133, 0.35)',
+    },
+  },
+  {
+    id: 'twilight-promise',
+    name: 'Twilight Promise 🤝',
+    description: 'Atmospheric twilight sea sunset with golden silhouette',
+    mode: 'dark',
+    category: 'artistic',
+    bgImage: twilightPromiseImg,
+    previewColors: ['#180F1E', '#1E1226', '#EC4899'],
+    variables: {
+      '--bg-app': 'transparent',
+      '--bg-sidebar': 'rgba(24, 15, 30, 0.55)',
+      '--bg-header': 'rgba(24, 15, 30, 0.55)',
+      '--bg-card': 'rgba(30, 18, 38, 0.52)',
+      '--bg-card-hover': 'rgba(236, 72, 153, 0.15)',
+      '--bg-card-active': 'rgba(236, 72, 153, 0.25)',
+      '--bg-input': 'rgba(12, 6, 16, 0.60)',
+      '--border-subtle': 'rgba(255, 255, 255, 0.14)',
+      '--border-focus': 'rgba(236, 72, 153, 0.6)',
+      '--text-primary': '#FDF2F8',
+      '--text-secondary': '#FBCFE8',
+      '--text-muted': '#F472B6',
+      '--accent-primary': '#EC4899',
+      '--accent-primary-hover': '#F59E0B',
+      '--accent-gradient': 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)',
+      '--accent-glow': 'rgba(236, 72, 153, 0.35)',
+    },
+  },
+
+  // --- Solid Color Palette Presets ---
   {
     id: 'midnight-slate',
     name: 'Midnight Slate',
     description: 'Sleek indigo & deep slate dark theme',
     mode: 'dark',
+    category: 'solid',
     previewColors: ['#0B0F17', '#1E293B', '#6366F1'],
     variables: {
       '--bg-app': '#0B0F17',
@@ -38,6 +157,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Dracula',
     description: 'Vampire dark theme with vibrant pink & cyan accents',
     mode: 'dark',
+    category: 'solid',
     previewColors: ['#1E1F29', '#282A36', '#FF79C6'],
     variables: {
       '--bg-app': '#1E1F29',
@@ -63,6 +183,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Nordic Frost',
     description: 'Arctic North slate blue & ice cyan palette',
     mode: 'dark',
+    category: 'solid',
     previewColors: ['#242933', '#2E3440', '#88C0D0'],
     variables: {
       '--bg-app': '#242933',
@@ -88,6 +209,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Catppuccin Mocha',
     description: 'Soothing pastel mauve & charcoal theme',
     mode: 'dark',
+    category: 'solid',
     previewColors: ['#181825', '#1E1E2E', '#CBA6F7'],
     variables: {
       '--bg-app': '#181825',
@@ -113,6 +235,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Tokyo Night',
     description: 'Neon cyberpunk navy with electric violet accents',
     mode: 'dark',
+    category: 'solid',
     previewColors: ['#16161E', '#1A1B26', '#7AA2F7'],
     variables: {
       '--bg-app': '#16161E',
@@ -138,6 +261,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Rosé Pine',
     description: 'Warm, cozy dark rose gold & pine theme',
     mode: 'dark',
+    category: 'solid',
     previewColors: ['#121019', '#191724', '#EBBCBA'],
     variables: {
       '--bg-app': '#121019',
@@ -163,6 +287,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'One Dark Pro',
     description: 'Atom classic dark theme with vibrant blue accents',
     mode: 'dark',
+    category: 'solid',
     previewColors: ['#21252B', '#282C34', '#61AFEF'],
     variables: {
       '--bg-app': '#21252B',
@@ -188,6 +313,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Solarized Dark',
     description: 'Precision blue-green dark theme with cyan accents',
     mode: 'dark',
+    category: 'solid',
     previewColors: ['#001E26', '#002B36', '#2AA198'],
     variables: {
       '--bg-app': '#001E26',
@@ -213,6 +339,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Paper & Ink',
     description: 'Crisp light mode with deep indigo accents',
     mode: 'light',
+    category: 'solid',
     previewColors: ['#F8FAFC', '#FFFFFF', '#4F46E5'],
     variables: {
       '--bg-app': '#F8FAFC',
