@@ -1,21 +1,36 @@
 {
-  "name": "productivity-app",
+  "name": "solitude-productivity",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Desktop-first personal productivity dashboard",
+  "main": "dist/main/main/index.js",
   "scripts": {
-  "dev:renderer": "vite",
-  "dev:main": "tsc -p src/main/tsconfig.json && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron dist/main/main/index.js",
-  "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
-  "build:renderer": "vite build",
-  "build:main": "tsc -p src/main/tsconfig.json",
-  "build": "npm run build:renderer && npm run build:main",
-  "start": "electron dist/main/main/index.js"
-},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+    "dev:renderer": "vite",
+    "dev:main": "tsc -p src/main/tsconfig.json && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron dist/main/main/index.js",
+    "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p src/main/tsconfig.json",
+    "build": "npm run build:renderer && npm run build:main",
+    "dist": "npm run build && npx electron-builder --win nsis",
+    "dist:dir": "npm run build && npx electron-builder --win --dir",
+    "start": "electron dist/main/main/index.js"
+  },
+  "build": {
+    "appId": "com.solitude.productivity",
+    "productName": "Solitude Productivity Hub",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    }
+  },
   "dependencies": {
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

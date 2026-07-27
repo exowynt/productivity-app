@@ -50,6 +50,14 @@ export function useTimer(options?: UseTimerOptions) {
               completed: true,
             };
 
+            // Trigger native desktop notification
+            if (window.electronAPI?.showNotification) {
+              window.electronAPI.showNotification(
+                'Focus Session Completed! 🎉',
+                `Great job! You completed your ${label || 'focus'} session.`
+              );
+            }
+
             if (onCompleteRef.current) {
               onCompleteRef.current(completedSession);
             }
