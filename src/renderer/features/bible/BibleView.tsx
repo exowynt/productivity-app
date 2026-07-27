@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useStorage } from '../../hooks/useStorage';
-import { getVerseOfTheDay, CURATED_VERSES } from '../../utils/dailyInspiration';
+import { getVerseOfTheDay, getRandomVerse, CURATED_VERSES, DailyVerse } from '../../utils/dailyInspiration';
 import {
   IconBible,
   IconHeart,
   IconCheck,
   IconTrash,
+  IconRefresh,
 } from '../../components/ui/Icons';
 
 export const BibleView: React.FC = () => {
   const { data, saveReflection, deleteReflection, toggleFavoriteVerse } = useStorage();
-  const verse = getVerseOfTheDay();
+  const [verse, setVerse] = useState<DailyVerse>(() => getVerseOfTheDay());
 
   const todayStr = new Date().toISOString().split('T')[0];
   const reflections = data.reflections || [];
@@ -19,7 +20,10 @@ export const BibleView: React.FC = () => {
   const [reflectionInput, setReflectionInput] = useState(todayEntry ? todayEntry.text : '');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  // Sync state if today's entry loads asynchronously
+  const handleRefreshVerse = () => {
+    setVerse((prev) => getRandomVerse(prev.id));
+  };
+
   useEffect(() => {
     if (todayEntry) {
       setReflectionInput(todayEntry.text);
@@ -60,14 +64,24 @@ export const BibleView: React.FC = () => {
       {/* Featured Verse of the Day Card */}
       <div className="glass-card verse-spotlight-card">
         <div className="spotlight-top">
-          <span className="badge badge-primary">Verse of the Day</span>
-          <button
-            onClick={() => toggleFavoriteVerse(verse.id)}
-            className={`btn-icon-subtle ${isVerseFavorited ? 'favorited' : ''}`}
-            title={isVerseFavorited ? 'Remove from favorite verses' : 'Bookmark verse'}
-          >
-            <IconHeart size={18} fill={isVerseFavorited ? 'currentColor' : 'none'} />
-          </button>
+          <span className="badge badge-primary">Verse Spotlight</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button
+              onClick={handleRefreshVerse}
+              className="btn btn-secondary btn-sm"
+              style={{ gap: '0.35rem' }}
+              title="Get a new verse"
+            >
+              <IconRefresh size={14} /> New Verse
+            </button>
+            <button
+              onClick={() => toggleFavoriteVerse(verse.id)}
+              className={`btn-icon-subtle ${isVerseFavorited ? 'favorited' : ''}`}
+              title={isVerseFavorited ? 'Remove from favorite verses' : 'Bookmark verse'}
+            >
+              <IconHeart size={18} fill={isVerseFavorited ? 'currentColor' : 'none'} />
+            </button>
+          </div>
         </div>
 
         <blockquote className="spotlight-verse-text">"{verse.text}"</blockquote>

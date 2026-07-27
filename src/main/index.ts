@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, session } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { loadData, saveData } from './storage';
@@ -6,6 +6,9 @@ import { AppData } from '../shared/types';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+
+let activeBlocklist: string[] = [];
+let isBlockerActive = false;
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -26,7 +29,6 @@ function createWindow(): void {
   if (devServerUrl) {
     mainWindow.loadURL(devServerUrl);
   } else {
-    // Bulletproof path resolution for production builds
     const appPath = app.getAppPath();
     const possiblePaths = [
       path.join(appPath, 'dist/renderer/index.html'),
@@ -83,6 +85,45 @@ function createTray(): void {
   }
 }
 
+function setupWebsiteBlocker(): void {
+  try {
+    session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
+      if (!isBlockerActive || activeBlocklist.length === 0) {
+        callback({ cancel: false });
+        return;
+      }
+
+      const url = details.url.toLowerCase();
+      const shouldBlock = activeBlocklist.some((domain) => url.includes(domain.toLowerCase()));
+
+      if (shouldBlock) {
+        console.log(`[Website Shield] Blocked request to: ${details.url}`);
+        callback({ cancel: true });
+      } else {
+        callback({ cancel: false });
+      }
+    });
+  } catch (err) {
+    console.warn('WebRequest blocker registration error:', err);
+  }
+
+  ipcMain.handle('start-website-blocker', (_event, blocklist: string[]) => {
+    activeBlocklist = blocklist || [];
+    isBlockerActive = true;
+    return { success: true, active: true, count: activeBlocklist.length };
+  });
+
+  ipcMain.handle('stop-website-blocker', () => {
+    isBlockerActive = false;
+    activeBlocklist = [];
+    return { success: true, active: false, count: 0 };
+  });
+
+  ipcMain.handle('get-website-blocker-status', () => {
+    return { active: isBlockerActive, count: activeBlocklist.length, list: activeBlocklist };
+  });
+}
+
 app.whenReady().then(() => {
   ipcMain.handle('load-data', () => loadData());
   ipcMain.handle('save-data', (_event, data: AppData) => saveData(data));
@@ -92,6 +133,7 @@ app.whenReady().then(() => {
     }
   });
 
+  setupWebsiteBlocker();
   createWindow();
   createTray();
 });

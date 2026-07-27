@@ -55,6 +55,36 @@ export const CURATED_VERSES: DailyVerse[] = [
     text: 'And let us not grow weary of doing good, for in due season we will reap, if we do not give up.',
     translation: 'ESV',
   },
+  {
+    id: 'v8',
+    reference: 'Romans 12:2',
+    text: 'Do not be conformed to this world, but be transformed by the renewal of your mind, that by testing you may discern what is the will of God, what is good and acceptable and perfect.',
+    translation: 'ESV',
+  },
+  {
+    id: 'v9',
+    reference: 'Matthew 11:28',
+    text: 'Come to me, all who labor and are heavy laden, and I will give you rest.',
+    translation: 'ESV',
+  },
+  {
+    id: 'v10',
+    reference: 'Psalm 46:10',
+    text: 'Be still, and know that I am God. I will be exalted among the nations, I will be exalted in the earth!',
+    translation: 'ESV',
+  },
+  {
+    id: 'v11',
+    reference: '2 Timothy 1:7',
+    text: 'For God gave us a spirit not of fear but of power and love and self-control.',
+    translation: 'ESV',
+  },
+  {
+    id: 'v12',
+    reference: 'Hebrews 12:1-2',
+    text: 'Let us run with endurance the race that is set before us, looking to Jesus, the founder and perfecter of our faith.',
+    translation: 'ESV',
+  },
 ];
 
 export const CURATED_QUOTES: DailyQuote[] = [
@@ -102,9 +132,6 @@ export const CURATED_QUOTES: DailyQuote[] = [
   },
 ];
 
-/**
- * Get deterministic day index for consistent daily rotation
- */
 function getDayOfYear(date: Date = new Date()): number {
   const start = new Date(date.getFullYear(), 0, 0);
   const diff = date.getTime() - start.getTime();
@@ -115,6 +142,12 @@ function getDayOfYear(date: Date = new Date()): number {
 export function getVerseOfTheDay(date: Date = new Date()): DailyVerse {
   const dayIndex = getDayOfYear(date);
   return CURATED_VERSES[dayIndex % CURATED_VERSES.length];
+}
+
+export function getRandomVerse(currentId?: string): DailyVerse {
+  const filtered = CURATED_VERSES.filter((v) => v.id !== currentId);
+  const randomIndex = Math.floor(Math.random() * filtered.length);
+  return filtered[randomIndex] || CURATED_VERSES[0];
 }
 
 export function getQuoteOfTheDay(date: Date = new Date()): DailyQuote {

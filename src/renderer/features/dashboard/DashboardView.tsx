@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStorage } from '../../hooks/useStorage';
 import { calculateStreakDays } from '../../utils/focusMetrics';
-import { getVerseOfTheDay, getQuoteOfTheDay } from '../../utils/dailyInspiration';
+import { getVerseOfTheDay, getRandomVerse, getQuoteOfTheDay, DailyVerse } from '../../utils/dailyInspiration';
 import {
   IconPlay,
   IconFlame,
@@ -11,6 +11,7 @@ import {
   IconQuote,
   IconHeart,
   IconArrowRight,
+  IconRefresh,
 } from '../../components/ui/Icons';
 import { NavTab } from '../../components/layout/Sidebar';
 
@@ -21,14 +22,18 @@ interface DashboardViewProps {
 export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
   const { data, toggleTask } = useStorage();
   const [isQuoteFavorited, setIsQuoteFavorited] = useState(false);
+  const [verse, setVerse] = useState<DailyVerse>(() => getVerseOfTheDay());
 
-  const verse = getVerseOfTheDay();
   const quote = getQuoteOfTheDay();
 
   // Metrics
   const streakDays = calculateStreakDays(data.focusSessions);
   const tasks = data.tasks || [];
   const completedTasksCount = tasks.filter((t) => t.completed).length;
+
+  const handleRefreshVerse = () => {
+    setVerse((prev) => getRandomVerse(prev.id));
+  };
 
   useEffect(() => {
     try {
@@ -104,7 +109,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
               <span className="badge badge-primary">
                 <IconBible size={14} /> Verse of the Day
               </span>
-              <span className="bible-ref-tag">{verse.reference}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="bible-ref-tag">{verse.reference}</span>
+                <button
+                  onClick={handleRefreshVerse}
+                  className="btn-icon-subtle"
+                  title="Get a new Bible verse"
+                >
+                  <IconRefresh size={15} />
+                </button>
+              </div>
             </div>
 
             <blockquote className="verse-text">"{verse.text}"</blockquote>

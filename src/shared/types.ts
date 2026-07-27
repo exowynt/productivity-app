@@ -40,6 +40,7 @@ export interface AppData {
   tasks: Task[];
   notes: Note[];
   reflections?: ReflectionEntry[];
-  favoriteVerses?: string[]; // verse IDs
+  favoriteVerses?: string[];
+  blockedSites?: string[];
   settings: Record<string, unknown>;
 }

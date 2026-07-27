@@ -17,17 +17,27 @@ import {
   IconFlame,
   IconClock,
   IconFocus,
+  IconShield,
+  IconPlus,
 } from '../../components/ui/Icons';
 import { FocusSession } from '../../../shared/types';
 
 export const FocusView: React.FC = () => {
-  const { data, addFocusSession, deleteFocusSession } = useStorage();
+  const { data, addFocusSession, deleteFocusSession, addBlockedSite, removeBlockedSite } = useStorage();
   const [selectedLabel, setSelectedLabel] = useState<string>('Deep Study Session');
   const [customMinutesInput, setCustomMinutesInput] = useState<string>('30');
+  const [newDomainInput, setNewDomainInput] = useState<string>('');
+  const [isShieldActive, setIsShieldActive] = useState<boolean>(false);
+
+  const blockedSites = data.blockedSites || [];
 
   // Timer completion handler
   const handleComplete = (session: FocusSession) => {
     addFocusSession(session);
+    if (window.electronAPI) {
+      window.electronAPI.stopWebsiteBlocker();
+      setIsShieldActive(false);
+    }
   };
 
   const {
@@ -43,14 +53,26 @@ export const FocusView: React.FC = () => {
     endSession,
   } = useTimer({ onComplete: handleComplete });
 
-  // Update window title with countdown
+  // Activate/deactivate Website Blocker when timer status changes
   useEffect(() => {
-    if (status === 'running' || status === 'paused') {
+    if (status === 'running') {
+      if (window.electronAPI) {
+        window.electronAPI.startWebsiteBlocker(blockedSites).then((res) => {
+          setIsShieldActive(res?.active || false);
+        });
+      }
       document.title = `(${formatMMSS(timeLeft)}) Focus Mode — Solitude`;
+    } else if (status === 'paused') {
+      document.title = `(Paused) Focus Mode — Solitude`;
     } else {
+      if (window.electronAPI) {
+        window.electronAPI.stopWebsiteBlocker().then(() => {
+          setIsShieldActive(false);
+        });
+      }
       document.title = 'Personal Productivity Dashboard';
     }
-  }, [status, timeLeft]);
+  }, [status, timeLeft, blockedSites]);
 
   // Handle Preset Clicks
   const handlePresetSelect = (minutes: number, type: SessionType = 'pomodoro', defaultLabel?: string) => {
@@ -71,6 +93,18 @@ export const FocusView: React.FC = () => {
     const recorded = endSession();
     if (recorded) {
       addFocusSession(recorded);
+    }
+    if (window.electronAPI) {
+      window.electronAPI.stopWebsiteBlocker();
+      setIsShieldActive(false);
+    }
+  };
+
+  const handleAddDomain = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newDomainInput.trim()) {
+      addBlockedSite(newDomainInput);
+      setNewDomainInput('');
     }
   };
 
@@ -140,9 +174,16 @@ export const FocusView: React.FC = () => {
             />
           </div>
 
-          <div className={`status-badge status-${status}`}>
-            <span className="status-dot" />
-            <span>{status.toUpperCase()}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {isShieldActive && (
+              <span className="badge badge-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <IconShield size={13} /> Shield Active ({blockedSites.length})
+              </span>
+            )}
+            <div className={`status-badge status-${status}`}>
+              <span className="status-dot" />
+              <span>{status.toUpperCase()}</span>
+            </div>
           </div>
         </div>
 
@@ -264,6 +305,63 @@ export const FocusView: React.FC = () => {
               <IconRotateCcw size={18} />
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Website Shield Manager Card */}
+      <div className="glass-card session-history-card">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div>
+            <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <IconShield size={18} style={{ color: 'var(--accent-primary)' }} />
+              <span>Website Blocker Shield</span>
+            </h3>
+            <p className="section-subtitle">
+              Distraction sites blocked automatically while your Focus timer is running.
+            </p>
+          </div>
+          <span className="badge badge-primary">{blockedSites.length} Blocked Domains</span>
+        </div>
+
+        <form onSubmit={handleAddDomain} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          <input
+            type="text"
+            className="category-input"
+            style={{ flex: 1 }}
+            placeholder="Add website to block (e.g. youtube.com, reddit.com, twitter.com)"
+            value={newDomainInput}
+            onChange={(e) => setNewDomainInput(e.target.value)}
+          />
+          <button type="submit" className="btn btn-secondary" style={{ gap: '0.35rem' }}>
+            <IconPlus size={16} />
+            <span>Add Domain</span>
+          </button>
+        </form>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          {blockedSites.map((domain) => (
+            <span
+              key={domain}
+              className="chip-btn"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.4rem 0.75rem',
+                fontSize: '0.85rem',
+              }}
+            >
+              <span>{domain}</span>
+              <button
+                onClick={() => removeBlockedSite(domain)}
+                className="btn-icon-danger"
+                style={{ padding: '0.1rem', cursor: 'pointer' }}
+                title={`Remove ${domain}`}
+              >
+                <IconTrash size={12} />
+              </button>
+            </span>
+          ))}
         </div>
       </div>
 
