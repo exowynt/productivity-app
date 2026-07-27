@@ -27,9 +27,19 @@ export interface Note {
   createdAt: string;
 }
 
+export interface ReflectionEntry {
+  id: string;
+  date: string;       // YYYY-MM-DD
+  text: string;
+  verseRef?: string;  // e.g. "Joshua 1:9"
+  createdAt: string;
+}
+
 export interface AppData {
   focusSessions: FocusSession[];
   tasks: Task[];
   notes: Note[];
+  reflections?: ReflectionEntry[];
+  favoriteVerses?: string[]; // verse IDs
   settings: Record<string, unknown>;
 }

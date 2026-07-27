@@ -1,6 +1,6 @@
 // src/renderer/hooks/useStorage.ts
 import { useState, useEffect, useCallback } from 'react';
-import { AppData, FocusSession, Task, Note } from '../../shared/types';
+import { AppData, FocusSession, Task, Note, ReflectionEntry } from '../../shared/types';
 
 const LOCAL_STORAGE_KEY = 'solitude_app_data_v1';
 
@@ -8,6 +8,8 @@ const EMPTY_DATA: AppData = {
   focusSessions: [],
   tasks: [],
   notes: [],
+  reflections: [],
+  favoriteVerses: [],
   settings: {
     dailyGoalMinutes: 120,
   },
@@ -123,12 +125,10 @@ export function useStorage() {
       const targetIndex = direction === 'up' ? index - 1 : index + 1;
       if (targetIndex < 0 || targetIndex >= tasks.length) return;
 
-      // Swap
       const temp = tasks[index];
       tasks[index] = tasks[targetIndex];
       tasks[targetIndex] = temp;
 
-      // Re-index orders
       const reindexed = tasks.map((t, i) => ({ ...t, order: i }));
       await save({ ...data, tasks: reindexed });
     },
@@ -185,6 +185,57 @@ export function useStorage() {
     [data, save]
   );
 
+  // --- Reflection Journal Actions ---
+  const saveReflection = useCallback(
+    async (text: string, verseRef?: string) => {
+      if (!text.trim()) return;
+      const todayStr = new Date().toISOString().split('T')[0];
+      const existingIndex = (data.reflections || []).findIndex((r) => r.date === todayStr);
+
+      let updatedReflections: ReflectionEntry[];
+      if (existingIndex >= 0) {
+        updatedReflections = [...(data.reflections || [])];
+        updatedReflections[existingIndex] = {
+          ...updatedReflections[existingIndex],
+          text: text.trim(),
+          verseRef: verseRef || updatedReflections[existingIndex].verseRef,
+        };
+      } else {
+        const newEntry: ReflectionEntry = {
+          id: Date.now().toString(),
+          date: todayStr,
+          text: text.trim(),
+          verseRef,
+          createdAt: new Date().toISOString(),
+        };
+        updatedReflections = [newEntry, ...(data.reflections || [])];
+      }
+
+      await save({ ...data, reflections: updatedReflections });
+    },
+    [data, save]
+  );
+
+  const deleteReflection = useCallback(
+    async (id: string) => {
+      const updatedReflections = (data.reflections || []).filter((r) => r.id !== id);
+      await save({ ...data, reflections: updatedReflections });
+    },
+    [data, save]
+  );
+
+  const toggleFavoriteVerse = useCallback(
+    async (verseId: string) => {
+      const currentFavs = data.favoriteVerses || [];
+      const updatedFavs = currentFavs.includes(verseId)
+        ? currentFavs.filter((id) => id !== verseId)
+        : [...currentFavs, verseId];
+
+      await save({ ...data, favoriteVerses: updatedFavs });
+    },
+    [data, save]
+  );
+
   return {
     data,
     loading,
@@ -200,5 +251,8 @@ export function useStorage() {
     updateNote,
     togglePinNote,
     deleteNote,
+    saveReflection,
+    deleteReflection,
+    toggleFavoriteVerse,
   };
 }

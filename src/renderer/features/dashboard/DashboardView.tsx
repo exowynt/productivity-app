@@ -1,21 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useStorage } from '../../hooks/useStorage';
-import {
-  calculateTodayFocusTime,
-  calculateStreakDays,
-  formatHumanDuration,
-} from '../../utils/focusMetrics';
-import {
-  getVerseOfTheDay,
-  getQuoteOfTheDay,
-} from '../../utils/dailyInspiration';
+import { calculateStreakDays } from '../../utils/focusMetrics';
+import { getVerseOfTheDay, getQuoteOfTheDay } from '../../utils/dailyInspiration';
 import {
   IconPlay,
-  IconClock,
   IconFlame,
   IconCheck,
   IconTasks,
-  IconNotes,
   IconBible,
   IconQuote,
   IconHeart,
@@ -35,15 +26,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
   const quote = getQuoteOfTheDay();
 
   // Metrics
-  const todaySeconds = calculateTodayFocusTime(data.focusSessions);
   const streakDays = calculateStreakDays(data.focusSessions);
   const tasks = data.tasks || [];
-  const activeTasks = tasks.filter((t) => !t.completed);
   const completedTasksCount = tasks.filter((t) => t.completed).length;
-  const notes = data.notes || [];
-  const pinnedNotes = notes.filter((n) => n.pinned);
 
-  // Check saved favorites in localStorage
   useEffect(() => {
     try {
       const favsRaw = localStorage.getItem('solitude_fav_quotes');
@@ -88,68 +74,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
 
   return (
     <div className="dashboard-container animate-fade-in">
-      {/* Hero Welcome Banner */}
-      <div className="glass-card dashboard-hero">
-        <div className="hero-content">
-          <span className="hero-date-badge">{formattedDate.toUpperCase()}</span>
-          <h1 className="hero-title">{getGreeting()}, Developer</h1>
-          <p className="hero-subtitle">
-            Welcome to your daily launchpad. Focus on today's priorities and build your momentum.
-          </p>
+      {/* Minimal Header Strip */}
+      <div className="glass-card dashboard-hero-minimal">
+        <div className="hero-left">
+          <div className="hero-date-row">
+            <span className="hero-date-text">{formattedDate.toUpperCase()}</span>
+            {streakDays > 0 && (
+              <span className="streak-badge-compact" title={`${streakDays} Day Study Streak`}>
+                <IconFlame size={13} /> {streakDays}d Streak
+              </span>
+            )}
+          </div>
+          <h1 className="hero-title-minimal">{getGreeting()}, Developer</h1>
         </div>
 
-        <button onClick={() => onNavigate('focus')} className="btn btn-primary btn-large hero-cta">
-          <IconPlay size={20} />
+        <button onClick={() => onNavigate('focus')} className="btn btn-primary btn-large">
+          <IconPlay size={18} />
           <span>Start Focus Session</span>
         </button>
       </div>
 
-      {/* Metrics Summary Strip */}
-      <div className="metrics-grid">
-        <div className="glass-card metric-card">
-          <div className="metric-icon primary">
-            <IconClock size={20} />
-          </div>
-          <div className="metric-info">
-            <span className="metric-label">Today's Focus</span>
-            <span className="metric-value">{formatHumanDuration(todaySeconds)}</span>
-          </div>
-        </div>
-
-        <div className="glass-card metric-card">
-          <div className="metric-icon warning">
-            <IconFlame size={20} />
-          </div>
-          <div className="metric-info">
-            <span className="metric-label">Study Streak</span>
-            <span className="metric-value">{streakDays} Days 🔥</span>
-          </div>
-        </div>
-
-        <div className="glass-card metric-card">
-          <div className="metric-icon success">
-            <IconTasks size={20} />
-          </div>
-          <div className="metric-info">
-            <span className="metric-label">Tasks Done</span>
-            <span className="metric-value">{completedTasksCount} / {tasks.length}</span>
-          </div>
-        </div>
-
-        <div className="glass-card metric-card">
-          <div className="metric-icon info">
-            <IconNotes size={20} />
-          </div>
-          <div className="metric-info">
-            <span className="metric-label">Pinned Notes</span>
-            <span className="metric-value">{pinnedNotes.length} Notes</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main 2-Column Grid */}
+      {/* Main 2-Column Minimal Layout */}
       <div className="dashboard-main-grid">
-        {/* Left Column: Inspiration */}
+        {/* Left Column: Quiet Reflection & Quote */}
         <div className="dashboard-column">
           {/* Verse of the Day Card */}
           <div className="glass-card inspiration-card verse-card">
@@ -163,9 +110,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
             <blockquote className="verse-text">"{verse.text}"</blockquote>
 
             <div className="card-action-footer">
-              <span className="translation-sub">{verse.translation} Translation</span>
+              <span className="translation-sub">{verse.translation}</span>
               <button onClick={() => onNavigate('bible')} className="btn-secondary btn-sm link-btn">
-                <span>Reflect in Journal</span>
+                <span>Reflect</span>
                 <IconArrowRight size={14} />
               </button>
             </div>
@@ -175,7 +122,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
           <div className="glass-card inspiration-card quote-card">
             <div className="card-top-label">
               <span className="badge badge-break">
-                <IconQuote size={14} /> Daily Inspiration
+                <IconQuote size={14} /> Daily Quote
               </span>
               <button
                 onClick={toggleFavoriteQuote}
@@ -191,14 +138,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Right Column: Today's Priorities & Notes */}
+        {/* Right Column: Today's Priorities */}
         <div className="dashboard-column">
-          {/* Today's Tasks Preview Widget */}
           <div className="glass-card widget-card">
             <div className="widget-header">
               <div className="widget-title-group">
                 <IconTasks size={18} className="widget-icon" />
-                <h3>Today's Priorities</h3>
+                <h3>Today's Tasks ({completedTasksCount}/{tasks.length})</h3>
               </div>
               <button onClick={() => onNavigate('tasks')} className="widget-link-btn">
                 <span>View All</span>
@@ -207,10 +153,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
             </div>
 
             {tasks.length === 0 ? (
-              <p className="widget-empty-text">No tasks created yet for today.</p>
+              <div className="empty-widget-box">
+                <p className="widget-empty-text">No tasks added for today yet.</p>
+                <button onClick={() => onNavigate('tasks')} className="btn-secondary btn-sm" style={{ marginTop: '0.5rem' }}>
+                  + Add Priority
+                </button>
+              </div>
             ) : (
               <div className="widget-tasks-list">
-                {tasks.slice(0, 4).map((task) => (
+                {tasks.slice(0, 5).map((task) => (
                   <div key={task.id} className={`widget-task-item ${task.completed ? 'completed' : ''}`}>
                     <button
                       onClick={() => toggleTask(task.id)}
@@ -219,33 +170,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
                       {task.completed && <IconCheck size={12} />}
                     </button>
                     <span className="widget-task-text">{task.text}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Sticky Notes Quick Preview Widget */}
-          <div className="glass-card widget-card">
-            <div className="widget-header">
-              <div className="widget-title-group">
-                <IconNotes size={18} className="widget-icon" />
-                <h3>Quick Notes Preview</h3>
-              </div>
-              <button onClick={() => onNavigate('notes')} className="widget-link-btn">
-                <span>View Notes</span>
-                <IconArrowRight size={14} />
-              </button>
-            </div>
-
-            {notes.length === 0 ? (
-              <p className="widget-empty-text">No quick notes saved yet.</p>
-            ) : (
-              <div className="widget-notes-grid">
-                {notes.slice(0, 2).map((note) => (
-                  <div key={note.id} className={`widget-note-pill color-${note.color || 'indigo'}`}>
-                    <span className="widget-note-title">{note.title}</span>
-                    <span className="widget-note-snippet">{note.content}</span>
                   </div>
                 ))}
               </div>
