@@ -65,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTabLabel, onOpenThemeModal
         ) : (
           <div className="focus-pill">
             <span className="focus-dot" />
-            <span className="focus-question">What should I be doing right now?</span>
+            <span className="focus-question">Focus Mode — Solitude</span>
           </div>
         )}
       </div>

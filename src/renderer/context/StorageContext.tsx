@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { AppData, FocusSession, Task, Note, ReflectionEntry } from '../../shared/types';
+import { AppData, FocusSession, Task, Note, ReflectionEntry, Habit, ReadingLogEntry } from '../../shared/types';
 
 const LOCAL_STORAGE_KEY = 'solitude_app_data_v1';
 
@@ -9,6 +9,8 @@ const EMPTY_DATA: AppData = {
   notes: [],
   reflections: [],
   favoriteVerses: [],
+  habits: [],
+  readingLogs: [],
   settings: {
     dailyGoalMinutes: 120,
   },
@@ -31,6 +33,11 @@ interface StorageContextValue {
   saveReflection: (text: string, verseRef?: string) => Promise<void>;
   deleteReflection: (id: string) => Promise<void>;
   toggleFavoriteVerse: (verseId: string) => Promise<void>;
+  addHabit: (name: string, color?: Habit['color'], targetCount?: number) => Promise<void>;
+  toggleHabitDate: (id: string, dateStr?: string) => Promise<void>;
+  deleteHabit: (id: string) => Promise<void>;
+  addReadingLog: (passage: string, reflection: string, chaptersRead?: number) => Promise<void>;
+  deleteReadingLog: (id: string) => Promise<void>;
 }
 
 const StorageContext = createContext<StorageContextValue | undefined>(undefined);
@@ -94,7 +101,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
-  // --- Actions ---
+  // --- Focus Actions ---
   const addFocusSession = useCallback(
     async (session: FocusSession) => {
       await save((prev) => ({
@@ -115,6 +122,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     [save]
   );
 
+  // --- Task Actions ---
   const addTask = useCallback(
     async (text: string) => {
       if (!text.trim()) return;
@@ -180,6 +188,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }));
   }, [save]);
 
+  // --- Note Actions ---
   const addNote = useCallback(
     async (title: string, content: string, color: 'indigo' | 'emerald' | 'amber' | 'rose' | 'violet' = 'indigo') => {
       await save((prev) => {
@@ -227,6 +236,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     [save]
   );
 
+  // --- Reflection Journal Actions ---
   const saveReflection = useCallback(
     async (text: string, verseRef?: string) => {
       if (!text.trim()) return;
@@ -281,6 +291,84 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     [save]
   );
 
+  // --- Habit Actions ---
+  const addHabit = useCallback(
+    async (name: string, color: Habit['color'] = 'indigo', targetCount = 1) => {
+      if (!name.trim()) return;
+      await save((prev) => {
+        const newHabit: Habit = {
+          id: Date.now().toString(),
+          name: name.trim(),
+          frequency: 'daily',
+          targetCount,
+          color,
+          completedDates: [],
+          createdAt: new Date().toISOString(),
+        };
+        return { ...prev, habits: [...(prev.habits || []), newHabit] };
+      });
+    },
+    [save]
+  );
+
+  const toggleHabitDate = useCallback(
+    async (id: string, dateStr?: string) => {
+      const targetDate = dateStr || new Date().toISOString().split('T')[0];
+      await save((prev) => {
+        const habits = (prev.habits || []).map((h) => {
+          if (h.id !== id) return h;
+          const exists = h.completedDates.includes(targetDate);
+          const updatedDates = exists
+            ? h.completedDates.filter((d) => d !== targetDate)
+            : [...h.completedDates, targetDate];
+          return { ...h, completedDates: updatedDates };
+        });
+        return { ...prev, habits };
+      });
+    },
+    [save]
+  );
+
+  const deleteHabit = useCallback(
+    async (id: string) => {
+      await save((prev) => ({
+        ...prev,
+        habits: (prev.habits || []).filter((h) => h.id !== id),
+      }));
+    },
+    [save]
+  );
+
+  // --- Reading Log Actions ---
+  const addReadingLog = useCallback(
+    async (passage: string, reflection: string, chaptersRead = 1) => {
+      if (!passage.trim()) return;
+      await save((prev) => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const newEntry: ReadingLogEntry = {
+          id: Date.now().toString(),
+          date: todayStr,
+          passage: passage.trim(),
+          chaptersRead,
+          reflection: reflection.trim(),
+          createdAt: new Date().toISOString(),
+        };
+        return { ...prev, readingLogs: [newEntry, ...(prev.readingLogs || [])] };
+      });
+    },
+    [save]
+  );
+
+  const deleteReadingLog = useCallback(
+    async (id: string) => {
+      await save((prev) => ({
+        ...prev,
+        readingLogs: (prev.readingLogs || []).filter((r) => r.id !== id),
+      }));
+    },
+    [save]
+  );
+
   return (
     <StorageContext.Provider
       value={{
@@ -300,6 +388,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         saveReflection,
         deleteReflection,
         toggleFavoriteVerse,
+        addHabit,
+        toggleHabitDate,
+        deleteHabit,
+        addReadingLog,
+        deleteReadingLog,
       }}
     >
       {children}

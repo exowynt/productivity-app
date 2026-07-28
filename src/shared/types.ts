@@ -35,11 +35,33 @@ export interface ReflectionEntry {
   createdAt: string;
 }
 
+export interface Habit {
+  id: string;
+  name: string;
+  category?: string;
+  frequency: 'daily' | 'weekly';
+  targetCount: number;
+  color: 'indigo' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'violet';
+  completedDates: string[]; // ['YYYY-MM-DD', ...]
+  createdAt: string;
+}
+
+export interface ReadingLogEntry {
+  id: string;
+  date: string;       // YYYY-MM-DD
+  passage: string;    // e.g. "Genesis 1-3" or "Psalm 23"
+  chaptersRead?: number;
+  reflection: string; // Small reflection notes
+  createdAt: string;
+}
+
 export interface AppData {
   focusSessions: FocusSession[];
   tasks: Task[];
   notes: Note[];
   reflections?: ReflectionEntry[];
   favoriteVerses?: string[];
+  habits?: Habit[];
+  readingLogs?: ReadingLogEntry[];
   settings: Record<string, unknown>;
 }

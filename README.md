@@ -21,30 +21,28 @@
 * **Live Header Status Pill:** Active countdown display (`00:00 — Deep Study Session`) right in the top navigation bar.
 * **Completion Chime & Notifications:** Plays a Web Audio harmonic chime (`D5 -> A5`) and triggers native Windows desktop notifications when sessions finish.
 
-### 🎨 **9 Curated Color Theme Presets**
-* Instantly switch color schemes via the top-bar Palette icon (`🎨`):
-  1. **Midnight Slate** *(Default Sleek Indigo/Dark Navy)*
-  2. **Dracula** *(Vampire Dark with Pink `#FF79C6` & Cyan accents)*
-  3. **Nordic Frost** *(Arctic Slate Blue `#2E3440` & Ice Cyan `#88C0D0`)*
-  4. **Catppuccin Mocha** *(Soothing Pastel Mauve `#CBA6F7` & Charcoal)*
-  5. **Tokyo Night** *(Neon Cyberpunk Navy `#1A1B26` & Electric Blue)*
-  6. **Rosé Pine** *(Cozy Dark Rose Gold `#EBBCBA` & Pine)*
-  7. **One Dark Pro** *(Atom Classic Dark with Vibrant Blue `#61AFEF`)*
-  8. **Solarized Dark** *(Precision Blue-Green `#002B36` & Cyan)*
-  9. **Paper & Ink** *(Crisp Light Mode with Deep Indigo accents)*
+### 🎯 **Long-Term Habit Tracker**
+* **Daily Habit Checklists:** Build routines with custom color themes (Indigo, Emerald, Amber, Rose, Cyan, Violet) and one-click completion toggles.
+* **Streak Counter:** Live streak tracking (`🔥 7d Streak`) and daily completion percentage metrics.
+* **Multi-Timeframe Analytics Charts:** Toggle between **Today**, **Past 7 Days**, and **Monthly (30 Days)** consistency heatmaps to visualize long-term habit momentum!
+
+### 📖 **365 Bible Verses, Reading Log & Reflection Journal**
+* **Daily Scripture Reading Tracker:** Document what you read daily (e.g., *Genesis 1-3*, *Psalm 23*), chapters count, and reflection notes with historical reading timeline!
+* **Zero Repeat Annual Engine:** 365 authentic, verified ESV Scripture verses (Genesis through Revelation). Guaranteed 0 repeated verses for an entire year!
+* **Verse Refresh & Favorites:** Refresh icon button (`🔄`) to draw new Scripture on demand and heart button (`❤️`) to bookmark verses.
+* **Date-Stamped Spiritual Journal:** Daily Reflection journal editor with saved history log.
+
+### 🎨 **Artistic Wallpapers & 9 Color Theme Presets**
+* **4 Aesthetic Photo Wallpapers:** *Snowy Peak*, *Alpine Lake Lodge*, *Rose Sunset Horizon*, and *Twilight Promise* paired with a **Translucent Frosted Glassmorphism UI** (`backdrop-filter: blur(20px)`).
+* **9 Developer Color Palettes:** Midnight Slate, Dracula, Nordic Frost, Catppuccin Mocha, Tokyo Night, Rosé Pine, One Dark Pro, Solarized Dark, and Paper & Ink.
 
 ### ⚡ **Dual Layout Density Modes**
 * **🌿 Calm Spacious (Default):** Generous margins, comfortable action buttons, and spacious cards.
 * **⚡ Sleek Compact:** Condensed padding, tighter header (`56px`), smaller button heights, and high information density.
 
-### 📖 **365 Unique Bible Verses & Reflection Journal**
-* **Zero Repeat Annual Engine:** 365 authentic, verified ESV Scripture verses (Genesis through Revelation). Guaranteed 0 repeated verses for an entire year!
-* **Verse Refresh & Favorites:** Refresh icon button (`🔄`) to draw new Scripture on demand and heart button (`❤️`) to bookmark verses.
-* **Date-Stamped Spiritual Journal:** Daily Reflection journal editor with saved history log.
-
 ### 📋 **Daily Task Checklist & Sticky Notes**
 * **Prioritized Tasks:** Drag/order tasks up and down, toggle completion, live progress bar, and instant clearing.
-* **Digital Sticky Notes:** Color-coded digital sticky notes (Indigo, Emerald, Amber, Rose, Violet), pinning, and inline editing.
+* **Digital Sticky Notes:** Color-coded digital sticky notes, pinning, and inline editing.
 
 ### 📊 **Study Analytics & History Log**
 * **KPI Metrics:** Track today's focus minutes, current streak (`🔥 5d Streak`), weekly totals, and completed sessions.
@@ -91,31 +89,6 @@ npm run build
 
 # Package Windows setup installer & portable executable into release/
 npm run dist
-```
-
----
-
-## 📂 Project Architecture
-
-```
-productivity-app/
-├── assets/                  # App brand logo & preview screenshots
-├── build/                   # App icon files (icon.png, icon.ico, icon.svg)
-├── scripts/                 # Node icon generator scripts
-├── src/
-│   ├── main/                # Electron main process (index.ts, preload.ts, storage.ts)
-│   ├── renderer/
-│   │   ├── components/      # UI components (Header, Sidebar, ThemeModal, Icons)
-│   │   ├── context/         # React Contexts (StorageContext, TimerContext)
-│   │   ├── features/        # Feature Views (Dashboard, Focus, Tasks, Notes, Bible, Stats)
-│   │   ├── hooks/           # Custom React hooks (useStorage, useTimer, useTheme, useDensity)
-│   │   ├── utils/           # Utilities (dailyInspiration, focusMetrics)
-│   │   ├── app.tsx          # Main React Application shell
-│   │   └── index.css        # Global CSS design system & theme variables
-│   └── shared/              # Shared TypeScript types & theme preset definitions
-├── package.json
-├── vite.config.ts
-└── tsconfig.json
 ```
 
 ---

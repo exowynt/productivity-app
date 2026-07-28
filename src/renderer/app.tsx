@@ -5,6 +5,7 @@ import { ThemeModal } from './components/theme/ThemeModal';
 
 import { DashboardView } from './features/dashboard/DashboardView';
 import { FocusView } from './features/focus/FocusView';
+import { HabitsView } from './features/habits/HabitsView';
 import { TasksView } from './features/tasks/TasksView';
 import { NotesView } from './features/notes/NotesView';
 import { BibleView } from './features/bible/BibleView';
@@ -17,6 +18,7 @@ function App() {
   const tabLabels: Record<NavTab, string> = {
     dashboard: 'Home Dashboard',
     focus: 'Focus Mode',
+    habits: 'Habit Tracker',
     tasks: "Today's Tasks",
     notes: 'Quick Notes',
     bible: 'Bible & Reflection',
@@ -29,6 +31,8 @@ function App() {
         return <DashboardView onNavigate={setActiveTab} />;
       case 'focus':
         return <FocusView />;
+      case 'habits':
+        return <HabitsView />;
       case 'tasks':
         return <TasksView />;
       case 'notes':

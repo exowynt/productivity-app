@@ -7,9 +7,10 @@ import {
   IconBible,
   IconStats,
   IconSparkles,
+  IconCheckCircle,
 } from '../ui/Icons';
 
-export type NavTab = 'dashboard' | 'focus' | 'tasks' | 'notes' | 'bible' | 'stats';
+export type NavTab = 'dashboard' | 'focus' | 'habits' | 'tasks' | 'notes' | 'bible' | 'stats';
 
 interface SidebarProps {
   activeTab: NavTab;
@@ -27,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   const navItems: NavItem[] = [
     { id: 'dashboard', label: 'Home Dashboard', icon: <IconHome size={20} /> },
     { id: 'focus', label: 'Focus Mode', icon: <IconFocus size={20} />, badge: 'Priority' },
+    { id: 'habits', label: 'Habit Tracker', icon: <IconCheckCircle size={20} /> },
     { id: 'tasks', label: "Today's Tasks", icon: <IconTasks size={20} /> },
     { id: 'notes', label: 'Quick Notes', icon: <IconNotes size={20} /> },
     { id: 'bible', label: 'Bible & Reflection', icon: <IconBible size={20} /> },
@@ -65,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
 
       <div className="sidebar-footer">
         <div className="quote-micro">
-          <span>"What should I be doing right now?"</span>
+          <span>Solitude Hub • v1.7.0</span>
         </div>
       </div>
     </aside>
