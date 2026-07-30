@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTimer, SessionType } from '../../hooks/useTimer';
 import { useStorage } from '../../hooks/useStorage';
 import {
@@ -17,12 +17,28 @@ import {
   IconFlame,
   IconClock,
   IconFocus,
+  IconShield,
+  IconX,
 } from '../../components/ui/Icons';
+
+/** Default blocked sites — kept in sync with main process for display purposes */
+const DEFAULT_BLOCKED_SITES = [
+  'youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtu.be',
+  'reddit.com', 'www.reddit.com', 'old.reddit.com',
+  'instagram.com', 'www.instagram.com', 'm.instagram.com',
+  'x.com', 'www.x.com', 'twitter.com', 'www.twitter.com',
+  'facebook.com', 'www.facebook.com', 'm.facebook.com', 'fb.com',
+  'tiktok.com', 'www.tiktok.com', 'm.tiktok.com',
+];
+
+/** Deduplicate for display — show base domains only */
+const DISPLAY_SITES = [...new Set(DEFAULT_BLOCKED_SITES.map((s) => s.replace(/^(www\.|m\.|old\.|music\.|mobile\.|sh\.|pv\.|l\.)/, '')))];
 
 export const FocusView: React.FC = () => {
   const { data, deleteFocusSession } = useStorage();
   const [selectedLabel, setSelectedLabel] = useState<string>('Deep Study Session');
   const [customMinutesInput, setCustomMinutesInput] = useState<string>('30');
+  const [adminWarning, setAdminWarning] = useState<string | null>(null);
 
   const {
     status,
@@ -30,12 +46,34 @@ export const FocusView: React.FC = () => {
     totalDuration,
     timeLeft,
     progressPercent,
+    websiteBlockingEnabled,
+    blockingActiveForSession,
+    blockerError,
     startSession,
     pauseTimer,
     resumeTimer,
     resetTimer,
     endSession,
+    setWebsiteBlockingEnabled,
+    clearBlockerError,
   } = useTimer();
+
+  // Check admin privileges when blocking is toggled on
+  useEffect(() => {
+    if (websiteBlockingEnabled && window.electronAPI?.checkBlockerAdmin) {
+      window.electronAPI.checkBlockerAdmin().then((result) => {
+        if (!result.isAdmin) {
+          setAdminWarning(result.error || 'Administrator privileges required.');
+        } else {
+          setAdminWarning(null);
+        }
+      }).catch(() => {
+        setAdminWarning(null);
+      });
+    } else {
+      setAdminWarning(null);
+    }
+  }, [websiteBlockingEnabled]);
 
   // Handle Preset Clicks
   const handlePresetSelect = (minutes: number, type: SessionType = 'pomodoro', defaultLabel?: string) => {
@@ -61,6 +99,8 @@ export const FocusView: React.FC = () => {
   const weeklySeconds = calculateWeeklyFocusTime(data.focusSessions);
   const streakDays = calculateStreakDays(data.focusSessions);
   const totalSessionsCount = (data.focusSessions || []).filter((s) => s.type !== 'break').length;
+
+  const isSessionActive = status === 'running' || status === 'paused';
 
   return (
     <div className="focus-container animate-fade-in">
@@ -128,6 +168,72 @@ export const FocusView: React.FC = () => {
           </div>
         </div>
 
+        {/* Website Blocker Toggle */}
+        <div className={`blocker-toggle-row ${websiteBlockingEnabled ? 'active' : ''} ${blockingActiveForSession ? 'session-active' : ''}`}>
+          <div className={`blocker-toggle-left ${websiteBlockingEnabled ? 'active' : ''}`}>
+            <div className="blocker-shield-icon">
+              <IconShield size={18} />
+            </div>
+            <div className="blocker-toggle-text">
+              <span className="blocker-toggle-label">
+                {blockingActiveForSession ? 'Sites Blocked 🛡️' : 'Block Distracting Websites'}
+              </span>
+              <span className="blocker-toggle-sub">
+                {blockingActiveForSession
+                  ? 'Websites are blocked via system hosts file'
+                  : websiteBlockingEnabled
+                    ? `${DISPLAY_SITES.length} site families (IPv4 + IPv6 + DoH fallback) will be blocked`
+                    : 'Modify system hosts file during focus sessions'
+                }
+              </span>
+            </div>
+          </div>
+
+          <button
+            className={`toggle-switch ${websiteBlockingEnabled ? 'active' : ''}`}
+            onClick={() => setWebsiteBlockingEnabled(!websiteBlockingEnabled)}
+            disabled={isSessionActive}
+            title={isSessionActive ? 'Cannot change during active session' : websiteBlockingEnabled ? 'Disable website blocking' : 'Enable website blocking'}
+            aria-label="Toggle website blocking"
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+
+        {/* Blocker Error Banner */}
+        {blockerError && (
+          <div className="blocker-warning blocker-error-banner animate-fade-in">
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', flex: 1 }}>
+              <span>⚠️</span>
+              <div>
+                <strong>Website Blocking Error:</strong> {blockerError}
+              </div>
+            </div>
+            <button onClick={clearBlockerError} className="btn-icon-subtle" title="Dismiss error">
+              <IconX size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* Admin Warning */}
+        {adminWarning && websiteBlockingEnabled && !isSessionActive && !blockerError && (
+          <div className="blocker-warning animate-fade-in">
+            <span>⚠️</span>
+            <span>{adminWarning}</span>
+          </div>
+        )}
+
+        {/* Blocked Sites Preview (shown when enabled and idle) */}
+        {websiteBlockingEnabled && !isSessionActive && !adminWarning && !blockerError && (
+          <div className="blocked-sites-preview animate-fade-in">
+            {DISPLAY_SITES.map((site) => (
+              <span key={site} className="blocked-site-chip">
+                🚫 {site}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Circular Progress Ring */}
         <div className="timer-ring-container">
           <svg className="timer-ring-svg" viewBox="0 0 280 280">
@@ -156,6 +262,11 @@ export const FocusView: React.FC = () => {
             <div className="session-type-label">
               {sessionType === 'break' ? '☕ Short Break' : selectedLabel}
             </div>
+            {blockingActiveForSession && (
+              <div className="blocking-active-badge animate-fade-in">
+                <IconShield size={12} /> Blocking Active
+              </div>
+            )}
           </div>
         </div>
 

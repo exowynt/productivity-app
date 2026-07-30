@@ -2,10 +2,14 @@ import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage } fr
 import * as path from 'path';
 import * as fs from 'fs';
 import { loadData, saveData } from './storage';
+import { WebsiteBlocker } from './websiteBlocker';
 import { AppData } from '../shared/types';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+
+// Singleton WebsiteBlocker service — instantiated at app ready
+let blocker: WebsiteBlocker | null = null;
 
 function getIconPath(): string {
   const appPath = app.getAppPath();
@@ -97,16 +101,48 @@ function createTray(): void {
 }
 
 app.whenReady().then(() => {
+  // ── Initialize WebsiteBlocker & run crash recovery ──────────────────────
+  blocker = new WebsiteBlocker();
+  blocker.recoverIfNeeded();
+
+  // ── Data Persistence IPC ────────────────────────────────────────────────
   ipcMain.handle('load-data', () => loadData());
   ipcMain.handle('save-data', (_event, data: AppData) => saveData(data));
+
+  // ── Desktop Notification IPC ────────────────────────────────────────────
   ipcMain.handle('show-notification', (_event, title: string, body: string) => {
     if (Notification.isSupported()) {
       new Notification({ title, body }).show();
     }
   });
 
+  // ── Website Blocker IPC ─────────────────────────────────────────────────
+  ipcMain.handle('blocker:check-admin', () => {
+    return blocker!.verifyAdminPrivileges();
+  });
+
+  ipcMain.handle('blocker:enable', (_event, sites?: string[]) => {
+    return blocker!.enableBlocking(sites);
+  });
+
+  ipcMain.handle('blocker:disable', () => {
+    return blocker!.disableBlocking();
+  });
+
+  ipcMain.handle('blocker:status', () => {
+    return blocker!.isBlockingActive();
+  });
+
   createWindow();
   createTray();
+});
+
+// ── Graceful Quit: disable blocking before exit ─────────────────────────────
+app.on('before-quit', () => {
+  if (blocker && blocker.isBlockingActive()) {
+    console.log('[WebsiteBlocker] App quitting — disabling website blocking...');
+    blocker.disableBlocking();
+  }
 });
 
 app.on('window-all-closed', () => {

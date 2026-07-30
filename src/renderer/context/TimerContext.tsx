@@ -5,6 +5,8 @@ import { useStorage } from '../hooks/useStorage';
 export type TimerStatus = 'idle' | 'running' | 'paused' | 'completed';
 export type SessionType = 'pomodoro' | 'custom' | 'break';
 
+const BLOCKING_PREF_KEY = 'solitude_website_blocking_enabled';
+
 interface TimerContextValue {
   status: TimerStatus;
   sessionType: SessionType;
@@ -13,12 +15,17 @@ interface TimerContextValue {
   elapsedSeconds: number;
   label: string;
   progressPercent: number;
+  websiteBlockingEnabled: boolean;
+  blockingActiveForSession: boolean;
+  blockerError: string | null;
   startSession: (seconds: number, type?: SessionType, customLabel?: string) => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
   resetTimer: () => void;
   endSession: () => FocusSession | null;
   setLabel: (l: string) => void;
+  setWebsiteBlockingEnabled: (enabled: boolean) => void;
+  clearBlockerError: () => void;
 }
 
 const TimerContext = createContext<TimerContextValue | undefined>(undefined);
@@ -49,6 +56,24 @@ const playChimeSound = () => {
   }
 };
 
+/**
+ * Calls the main process to disable website blocking.
+ * Fire-and-forget: errors are logged but don't interrupt the session lifecycle.
+ */
+const callDisableBlocking = (): void => {
+  if (window.electronAPI?.disableBlocking) {
+    window.electronAPI.disableBlocking()
+      .then((result) => {
+        if (!result.success) {
+          console.warn('[WebsiteBlocker] Failed to disable blocking:', result.error);
+        }
+      })
+      .catch((err) => {
+        console.warn('[WebsiteBlocker] IPC error disabling blocking:', err);
+      });
+  }
+};
+
 export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { addFocusSession } = useStorage();
   const [status, setStatus] = useState<TimerStatus>('idle');
@@ -59,7 +84,35 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [label, setLabel] = useState<string>('Deep Study Session');
   const [startTime, setStartTime] = useState<string | null>(null);
 
+  // Website blocking preference (persisted to localStorage)
+  const [websiteBlockingEnabled, setWebsiteBlockingEnabledRaw] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(BLOCKING_PREF_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  // Tracks whether blocking was activated for the *current* session
+  const [blockingActiveForSession, setBlockingActiveForSession] = useState<boolean>(false);
+  const [blockerError, setBlockerError] = useState<string | null>(null);
+
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Persist blocking preference to localStorage
+  const setWebsiteBlockingEnabled = useCallback((enabled: boolean) => {
+    setWebsiteBlockingEnabledRaw(enabled);
+    if (!enabled) setBlockerError(null);
+    try {
+      localStorage.setItem(BLOCKING_PREF_KEY, String(enabled));
+    } catch {
+      // localStorage unavailable — preference won't persist
+    }
+  }, []);
+
+  const clearBlockerError = useCallback(() => {
+    setBlockerError(null);
+  }, []);
 
   // Request browser notification permissions if applicable
   useEffect(() => {
@@ -108,6 +161,10 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               new Notification(notifTitle, { body: notifBody });
             }
 
+            // Disable website blocking when session completes
+            callDisableBlocking();
+            setBlockingActiveForSession(false);
+
             // Save completed session immediately to global storage
             addFocusSession(completedSession);
             return 0;
@@ -147,8 +204,32 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLabel(customLabel);
       setStartTime(new Date().toISOString());
       setStatus('running');
+      setBlockerError(null);
+
+      // Enable website blocking if preference is on AND this is not a break session
+      if (websiteBlockingEnabled && type !== 'break' && window.electronAPI?.enableBlocking) {
+        window.electronAPI.enableBlocking()
+          .then((result) => {
+            if (result.success) {
+              setBlockingActiveForSession(true);
+              setBlockerError(null);
+              console.log('[WebsiteBlocker] Blocking enabled for session.');
+            } else {
+              console.warn('[WebsiteBlocker] Failed to enable blocking:', result.error);
+              setBlockingActiveForSession(false);
+              setBlockerError(result.error || 'Failed to enable website blocking.');
+            }
+          })
+          .catch((err) => {
+            console.warn('[WebsiteBlocker] IPC error enabling blocking:', err);
+            setBlockingActiveForSession(false);
+            setBlockerError('IPC error enabling website blocking.');
+          });
+      } else {
+        setBlockingActiveForSession(false);
+      }
     },
-    []
+    [websiteBlockingEnabled]
   );
 
   const pauseTimer = useCallback(() => {
@@ -169,10 +250,18 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTimeLeft(totalDuration);
     setElapsedSeconds(0);
     setStartTime(null);
+
+    // Disable blocking on reset
+    callDisableBlocking();
+    setBlockingActiveForSession(false);
   }, [totalDuration]);
 
   const endSession = useCallback((): FocusSession | null => {
     clearTimer();
+
+    // Disable blocking on manual session end
+    callDisableBlocking();
+    setBlockingActiveForSession(false);
 
     const actualDuration = elapsedSeconds > 0 ? elapsedSeconds : (totalDuration - timeLeft);
 
@@ -218,12 +307,17 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         elapsedSeconds,
         label,
         progressPercent,
+        websiteBlockingEnabled,
+        blockingActiveForSession,
+        blockerError,
         startSession,
         pauseTimer,
         resumeTimer,
         resetTimer,
         endSession,
         setLabel,
+        setWebsiteBlockingEnabled,
+        clearBlockerError,
       }}
     >
       {children}
