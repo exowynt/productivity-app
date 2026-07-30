@@ -15,6 +15,12 @@
 
 ## ✨ Features at a Glance
 
+### 🛡️ **System-Wide Website Blocker**
+* **Focus Mode Integration:** Automatically block distracting websites (YouTube, Reddit, Instagram, X/Twitter, Facebook, TikTok, and subdomains) when starting a Focus session.
+* **Windows Hosts File Redirection:** Uses `0.0.0.0` (IPv4) and `::` (IPv6) dual redirection for instant connection rejection (`ERR_ADDRESS_INVALID`) across all browsers.
+* **DoH Fallback Protection:** Blocks Secure DNS / DNS-over-HTTPS (DoH) resolver hostnames to force browser fallback to system DNS rules.
+* **Automatic Recovery & Safety:** Uses sentinel lock files and comment markers to automatically restore original hosts files upon session end, application quit, or crash recovery.
+
 ### ⚡ **Focus Mode Centerpiece**
 * **Pomodoro & Custom Timers:** Quick presets (15m, 25m Pomodoro, 45m Deep Study, 60m Power Hour, 5m Break) plus custom minute inputs.
 * **Persistent Background Execution:** Timer runs continuously across all tabs without resetting when navigating between Dashboard, Tasks, Notes, Bible, or Analytics.
@@ -56,6 +62,7 @@
 ### Option 1: Installer Executable (Recommended)
 1. Download the latest installer **[Solitude Productivity Hub Setup 1.0.0.exe](https://github.com/exowynt/productivity-app/releases)** from GitHub Releases.
 2. Run the installer to set up Solitude on your Windows computer with Desktop and Start Menu shortcuts.
+3. *(Optional for Website Blocking)* Right-click Solitude and select **Run as Administrator** to enable system-wide website blocking.
 
 ### Option 2: Portable Executable
 1. Download **[Solitude Productivity Hub 1.0.0.exe](https://github.com/exowynt/productivity-app/releases)**.
